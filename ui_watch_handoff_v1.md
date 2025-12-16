@@ -273,7 +273,7 @@ Then restart CC.
 ## CC Permissions (Fallback)
 
 ### Purpose
-When cc_win_plugin is unavailable, allow basic shell commands.
+When cc_win_plugin is unavailable, allow basic shell commands. Also auto-approve plugin tools.
 
 ### File Location
 `.claude/settings.json` in project
@@ -283,6 +283,7 @@ When cc_win_plugin is unavailable, allow basic shell commands.
 {
   "permissions": {
     "allow": [
+      "mcp__plugin_cc_win_cc_win__*",
       "Edit",
       "Read",
       "Bash(mkdir:*)",
@@ -302,6 +303,9 @@ When cc_win_plugin is unavailable, allow basic shell commands.
   }
 }
 ```
+
+### Permission Notes
+- `mcp__plugin_cc_win_cc_win__*` — Auto-approve all cc_win plugin tools (no prompts)
 
 ### Important Limitation
 **Q:** Can I restrict commands to project directory?
