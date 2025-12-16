@@ -232,10 +232,10 @@ STOPPING. Build failed with compiler error. Need to fix the source code before p
 ### Build Number Format
 
 ```
-YYYY-MM-DD_HH-mm_NNN
+YYYY_MM_DD__HH_mm__NNN
 ```
 
-Example: `2025-12-16_14-30_001`
+Example: `2025_12_16__14_30__001`
 
 - Date and time of build
 - Counter (3 digits, zero-padded)
@@ -248,7 +248,7 @@ Create a static class `BuildInfo`:
 ```csharp
 public static class BuildInfo
 {
-    public const string Number = "2025-12-16_14-30_001";  // Update every build
+    public const string Number = "2025_12_16__14_30__001";  // Update every build
     
     public static string PluginDirectory => AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
     public static string ProjectDirectory => Directory.GetCurrentDirectory();
@@ -299,9 +299,9 @@ Or add a small label in the corner of the window.
 
 Example sequence:
 ```
-2025-12-16_14-30_001
-2025-12-16_14-35_002
-2025-12-16_15-00_003
+2025_12_16__14_30__001
+2025_12_16__14_35__002
+2025_12_16__15_00__003
 ```
 
 ## Permissions
