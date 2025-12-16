@@ -161,61 +161,9 @@ logs/
 .vs/
 ```
 
-## Architecture: Code-Behind + Service Layer
+## Architecture
 
-**Use Code-Behind with a Service Layer for CC-built applications.** Do NOT use MVVM unless explicitly requested.
-
-### Why Not MVVM?
-
-| Factor | Code-Behind + Service | MVVM |
-|--------|----------------------|------|
-| Lines of code | ~100 | ~300+ |
-| Files needed | 3-4 | 8-12 |
-| Time to build | Fast | 3x longer |
-| CC readability | ✅ Excellent | ⚠️ Scattered across files |
-| Debugging | ✅ Simple stack traces | ⚠️ Binding issues |
-
-MVVM adds significant boilerplate (INotifyPropertyChanged, ICommand, RelayCommand, ViewModels) that is overkill for tools, utilities, and test apps.
-
-### The Pattern
-
-```
-project/
-├── src/
-│   ├── App.xaml / App.xaml.cs
-│   ├── MainWindow.xaml              ← UI layout
-│   ├── MainWindow.xaml.cs           ← Event handlers, simple logic
-│   ├── Services/
-│   │   └── MyService.cs             ← Business logic (if needed)
-│   └── AppLogger.cs                 ← Logging
-```
-
-### Example: Button Click
-
-**Code-Behind (correct):**
-```csharp
-// MainWindow.xaml.cs
-private void Button_Click(object sender, RoutedEventArgs e)
-{
-    _logger.Info("Button clicked");
-    StatusText.Text = "Clicked!";
-}
-```
-
-**MVVM (avoid unless requested):**
-```csharp
-// Requires: ViewModel, INotifyPropertyChanged, ICommand, RelayCommand, bindings...
-// 5x more code for the same result
-```
-
-### When to Use MVVM
-
-Only if user explicitly requests it, or:
-- App has 10+ screens
-- Multiple developers working simultaneously
-- Extensive unit testing of UI logic required
-
-For typical CC projects (tools, POCs, utilities): **Code-Behind + Service Layer**.
+Use **Code-Behind + Service Layer**. Do NOT use MVVM unless explicitly requested.
 
 ## Logging
 
