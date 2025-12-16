@@ -20,6 +20,44 @@ Claude (Opus/claude.ai) builds **prototypes only** by default. Once a project is
 3. If both push independently, it creates merge conflicts and mess
 4. To contribute after handoff, discuss changes first, then coordinate
 
+## Collaboration with Claude Code
+
+Claude (Opus) and Claude Code collaborate via escalations:
+
+1. **Claude Code** works independently under user's guidance
+2. When CC encounters serious spec/tech issues, it creates an escalation in `escalations/` directory
+3. User tells Claude (Opus) "esc" — meaning there's a new escalation to review
+4. Claude (Opus) reviews, discusses with user, and writes resolution in the same file
+5. CC reads the resolution and continues
+
+**Escalation file format:** `YYYY_MM_DD__NNN__short_description.md`
+
+**Escalation template:**
+```markdown
+# Issue: [Short description]
+
+## Problem
+[What the issue is]
+
+## Why Blocking
+[Why can't proceed]
+
+## Analysis
+[Options considered]
+
+## Status
+OPEN
+```
+
+**Resolution (added by Opus):**
+```markdown
+## Resolution
+[Decision and rationale]
+
+## Status
+RESOLVED
+```
+
 ---
 
 ## Table of Contents
