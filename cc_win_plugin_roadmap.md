@@ -58,7 +58,7 @@ Implement all bash tool capabilities natively for Windows, eliminating the need 
 | Tool | Purpose | Replaces |
 |------|---------|----------|
 | `dotnet_build` | Build project | `dotnet build` |
-| `dotnet_publish` | Publish standalone exe | `dotnet publish -c Debug -r win-x64` |
+| `dotnet_publish` | Publish standalone exe | `dotnet publish -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true` |
 | `dotnet_test` | Run tests | `dotnet test` |
 | `dotnet_run` | Run project | `dotnet run` |
 | `dotnet_restore` | Restore packages | `dotnet restore` |
