@@ -4,6 +4,8 @@
 
 You are in the `cc_win_marketplace` folder. Create all files listed in this spec inside the current directory.
 
+**IMPORTANT:** Do NOT use cc_win_plugin tools when working inside the plugin project itself. The plugin's sandbox would be the plugin folder, causing conflicts. Use normal shell commands for plugin development.
+
 After creating all files:
 
 1. `cd cc_win_plugin`
@@ -782,6 +784,7 @@ Use native Windows tools instead of shell commands.
 3. ALWAYS use the tools above for file and process operations
 4. Working directory for run_process is always the project root
 5. All file paths must be within the project directory
+6. Do NOT use these tools when working inside the cc_win_plugin project itself
 
 ## Examples
 
