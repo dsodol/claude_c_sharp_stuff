@@ -348,6 +348,26 @@ Report checklist results before proceeding to Phase 2.
 
 ---
 
+---
+
+## Permissions Setup
+
+To auto-approve cc_win plugin tools (no prompts), add to `.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_cc_win_cc_win__*"
+    ]
+  }
+}
+```
+
+This allows all cc_win plugin tools without asking for permission each time.
+
+---
+
 ## Success Criteria
 
 - [ ] CLAUDE.md exists in project root
