@@ -27,8 +27,9 @@ Claude (Opus) and Claude Code collaborate via escalations:
 1. **Claude Code** works independently under user's guidance
 2. When CC encounters serious spec/tech issues, it creates an escalation in `escalations/` directory
 3. User tells Claude (Opus) "esc" — meaning there's a new escalation to review
-4. Claude (Opus) reviews, discusses with user, and writes resolution in the same file
-5. CC reads the resolution and continues
+4. **Opus summarizes the issue for user** (user doesn't read CC's analysis)
+5. User decides, Opus writes resolution in the same file
+6. CC reads the resolution and continues
 
 **Escalation file format:** `YYYY_MM_DD__NNN__short_description.md`
 
