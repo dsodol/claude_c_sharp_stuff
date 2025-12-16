@@ -85,7 +85,7 @@ logs/
 
 All file operations must be within the project directory.
 
-**Project directory** = current working directory when plugin starts.
+**Project directory** = directory where the exe is located (AppDomain.CurrentDomain.BaseDirectory).
 
 Validation rules:
 1. Resolve input path to absolute path
@@ -292,13 +292,14 @@ using Microsoft.Extensions.Hosting;
 using ModelContextProtocol.Server;
 using CcWin;
 
-// Capture project directory at startup
-var projectDirectory = Directory.GetCurrentDirectory();
+// Get the directory where the exe is located (not current working directory)
+var projectDirectory = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
 var logger = new AppLogger(projectDirectory);
 var processTracker = new ProcessTracker();
 var projectContext = new ProjectContext(projectDirectory);
 
 logger.Info("Plugin started");
+logger.Info($"Project directory: {projectDirectory}");
 
 var builder = Host.CreateEmptyApplicationBuilder(settings: null);
 
