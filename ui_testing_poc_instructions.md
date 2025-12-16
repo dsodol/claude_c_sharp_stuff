@@ -34,7 +34,7 @@ After reading these instructions, you MUST:
 
 1. **Query plugin build info:** Call `get_build_info()` to verify the plugin is working
 2. **Report plugin visibility:** "I can see cc_win_plugin with tools: [list them]" OR "I cannot see cc_win_plugin"
-3. **Confirm understanding:** State that you understand the build process uses `dotnet publish -c Debug -r win-x64` to create a standalone exe
+3. **Confirm understanding:** State that you understand the build command: `dotnet publish -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true`
 4. **Confirm error handling:** State that you will stop and report any errors immediately
 
 Example acknowledgment:
@@ -45,7 +45,7 @@ Example acknowledgment:
 > - Plugin directory: C:\Users\user\.claude\plugins\cache\cc_win_marketplace\cc_win\1.0.0
 > - Project directory: C:\Projects\ui_testing_poc
 > 
-> I can see cc_win_plugin with tools: list_files, run_process, read_file, close_window, get_build_info. I understand I need to use `dotnet publish -c Debug -r win-x64` to build a standalone exe (never Release). I will stop and report any errors immediately. Ready to proceed."
+> I can see cc_win_plugin with tools: list_files, run_process, read_file, close_window, get_build_info. I understand I need to use `dotnet publish -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true` to build a standalone exe. I will stop and report any errors immediately. Ready to proceed."
 
 If you CANNOT see the plugin or `get_build_info()` fails, say so immediately.
 
@@ -175,23 +175,24 @@ logs/
 
 ## Build Commands
 
-**IMPORTANT:** You must use `dotnet publish` with `-c Debug -r win-x64` to create a standalone executable.
+**IMPORTANT:** You must use the full publish command to create a standalone single-file executable.
 
 ```
-dotnet publish src/UiTestingPoc.csproj -c Debug -r win-x64
+dotnet publish src/UiTestingPoc.csproj -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true
 copy out\bin\Debug\net10.0-windows\win-x64\publish\UiTestingPoc.exe .
 ```
 
 **What each flag means:**
 - `-c Debug` — Use Debug configuration (REQUIRED — **NEVER use Release**)
-- `-r win-x64` — Target Windows 64-bit, creates self-contained exe
+- `-r win-x64` — Target Windows 64-bit
+- `--self-contained true` — Include .NET runtime (no .NET install needed on target machine)
+- `-p:PublishSingleFile=true` — Bundle everything into ONE exe file
 
-**Why Debug only?**
-- Consistent behavior across all projects
-- Easier debugging with symbols included
-- No optimization surprises
+**Why all four flags?**
+- Without `--self-contained true` → requires .NET runtime installed
+- Without `-p:PublishSingleFile=true` → creates multiple DLLs alongside exe
 
-**Common mistake:** Using `dotnet build` or `dotnet run` instead of `dotnet publish -c Debug -r win-x64`. This will NOT work.
+**Common mistake:** Using `dotnet build` or missing flags. This will NOT create a working standalone exe.
 
 **Output location:** `out\bin\Debug\net10.0-windows\win-x64\publish\UiTestingPoc.exe`
 
@@ -270,7 +271,7 @@ After clicking the button once:
 1. Check/create `CLAUDE.md` (see Project Initialization section)
 2. Create `.gitignore`
 3. Create all source files listed in the project structure
-4. Run `dotnet publish src/UiTestingPoc.csproj -c Debug -r win-x64`
+4. Run `dotnet publish src/UiTestingPoc.csproj -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true`
 5. Copy the exe to project root: `copy out\bin\Debug\net10.0-windows\win-x64\publish\UiTestingPoc.exe .`
 6. Verify the exe exists
 
@@ -279,9 +280,9 @@ After clicking the button once:
 - [ ] CLAUDE.md exists (created or already present)
 - [ ] .gitignore created
 - [ ] All source files created (App.xaml, App.xaml.cs, MainWindow.xaml, MainWindow.xaml.cs, AppLogger.cs, UiTestingPoc.csproj)
-- [ ] dotnet publish -c Debug -r win-x64 completed with exit code 0
+- [ ] dotnet publish with all flags completed with exit code 0
 - [ ] out\bin\Debug\net10.0-windows\win-x64\publish\ directory exists
-- [ ] UiTestingPoc.exe exists in publish folder
+- [ ] UiTestingPoc.exe exists in publish folder (should be single file, ~60-150MB)
 - [ ] copy command succeeded
 - [ ] UiTestingPoc.exe exists in project root
 ```
@@ -350,7 +351,8 @@ Report checklist results before proceeding to Phase 2.
 ## Success Criteria
 
 - [ ] CLAUDE.md exists in project root
-- [ ] App built with `dotnet publish -c Debug -r win-x64` (NOT `dotnet build`, NOT Release)
+- [ ] App built with full command: `dotnet publish -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true`
+- [ ] Published exe is a single file (no DLLs alongside it)
 - [ ] App window appears on screen
 - [ ] Log file is created with startup message
 - [ ] You detect when I click the button (by reading the log)
