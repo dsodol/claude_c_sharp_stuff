@@ -1,12 +1,91 @@
 # C# Development Guidelines for Claude Code
 
+---
+
+## CRITICAL: Reading Instructions
+
+After reading this guide or any spec, you MUST:
+
+1. **Report understanding:** State what you understood and what tools/plugins are available
+2. **Confirm plugin visibility:** If a plugin is mentioned, confirm you can see it in your available tools
+3. **Ask if unclear:** If anything is ambiguous, ask before proceeding
+
+Example acknowledgment:
+> "I've read the guide. I see the cc_win_plugin is available with tools: list_files, run_process, read_file, close_window. I understand I should use `dotnet publish` with `-r win-x64` for standalone builds. Ready to proceed."
+
+---
+
+## CRITICAL: Checklists for Verification
+
+When you create instructions for yourself or receive instructions, you MUST create explicit post-verification checklists.
+
+**Example — after building:**
+```
+Build verification checklist:
+- [ ] dotnet publish completed without errors
+- [ ] out\bin\Debug\net10.0-windows\win-x64\publish\ directory exists
+- [ ] ProjectName.exe exists in publish folder
+- [ ] Copied exe to project root
+- [ ] Project root contains ProjectName.exe
+```
+
+**Example — after running a process:**
+```
+Process verification checklist:
+- [ ] run_process returned a PID (not an error)
+- [ ] PID is a positive integer
+- [ ] Expected output file/log exists (if applicable)
+- [ ] No error messages in response
+```
+
+Always run through the checklist and report results before proceeding.
+
+---
+
 ## Build
 
 - **.NET version:** 10
 - **Configuration:** Debug only (no Release builds)
 - **After build:** Copy exe to project root
-- **Build command:** `dotnet publish src/ProjectName.csproj -r win-x64`
-- **Copy command:** `copy out\bin\Debug\net10.0\win-x64\publish\ProjectName.exe .`
+
+### Building Standalone Executables
+
+**This is critical.** To create a standalone `.exe` that runs without .NET installed:
+
+```
+dotnet publish src/ProjectName.csproj -r win-x64
+```
+
+**What this does:**
+- `-r win-x64` — Target Windows 64-bit runtime
+- Creates a **self-contained** executable with all dependencies bundled
+- Output location: `out\bin\Debug\net10.0\win-x64\publish\ProjectName.exe`
+
+**For WPF apps** (target framework `net10.0-windows`):
+```
+dotnet publish src/ProjectName.csproj -r win-x64
+```
+Output: `out\bin\Debug\net10.0-windows\win-x64\publish\ProjectName.exe`
+
+**After publish, copy to project root:**
+```
+copy out\bin\Debug\net10.0\win-x64\publish\ProjectName.exe .
+```
+
+Or for WPF:
+```
+copy out\bin\Debug\net10.0-windows\win-x64\publish\ProjectName.exe .
+```
+
+### Common Mistakes
+
+| Wrong | Right |
+|-------|-------|
+| `dotnet build` | `dotnet publish -r win-x64` |
+| `dotnet run` | `dotnet publish -r win-x64` then run the exe |
+| Running from `bin\Debug\net10.0\` | Running from `publish\` folder |
+
+**`dotnet build` does NOT create a standalone exe.** It creates a .dll that requires `dotnet` to run. Always use `dotnet publish -r win-x64`.
 
 ## Project Structure
 
@@ -59,13 +138,54 @@ logs/
 
 ## Process Management
 
+### Directories
+
 - **Plugin directory:** Use `AppDomain.CurrentDomain.BaseDirectory` for plugin's own files (logs)
 - **Project directory:** Use `Directory.GetCurrentDirectory()` for sandbox (file operations within user's project)
 - **Working directory:** When starting child processes, set to project directory
-- **Path sandboxing:** Never allow file access outside project directory
+
+### Path Sandboxing
+
+- Never allow file access outside project directory
 - Validate all paths before use
 - Resolve relative paths against project root
 - Block `..` escaping and absolute paths outside project
+
+### CRITICAL: Process Execution Error Handling
+
+When you run a process (via `run_process` or direct command), you MUST check the result:
+
+**For `run_process` (plugin tool):**
+```
+1. Check response for "error" field
+2. If error exists → STOP and report the error
+3. If success → verify PID is a positive integer
+4. If PID is missing or invalid → STOP and report
+```
+
+**For direct commands (`dotnet`, `copy`, etc.):**
+```
+1. Check exit code (0 = success, non-zero = failure)
+2. Check stderr for error messages
+3. If failure → STOP and report the error with full output
+4. Do NOT proceed to next step if previous step failed
+```
+
+**Example error handling flow:**
+```
+I ran: dotnet publish src/App.csproj -r win-x64
+
+Result: Exit code 1
+Stderr: error CS1002: ; expected
+
+STOPPING. Build failed with compiler error. Need to fix the source code before proceeding.
+```
+
+**Never ignore errors.** If a command or tool call fails, you must:
+1. Report the failure immediately
+2. Include the full error message
+3. Stop the current workflow
+4. Suggest how to fix the issue
 
 ## Naming
 
