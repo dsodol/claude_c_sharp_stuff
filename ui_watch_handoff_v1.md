@@ -1,7 +1,7 @@
 # ui_watch Project Handoff
 
 **Version:** 1
-**Date:** 2025-12-16
+**Last Updated:** 2025-12-16 (GitHub workflow added)
 
 ---
 
@@ -9,18 +9,38 @@
 
 When starting a new chat:
 
-1. Attach this handoff document
-2. Attach the latest versioned spec files:
-   - `cc_win_plugin_spec_v{N}.md`
-   - `cc_csharp_guide_v{N}.md`
-   - `ui_watch_spec_v{N}.md` (when created)
-3. Say: "Continue work on ui_watch project. Increment file versions."
+1. Attach `GITHUB_INSTRUCTIONS.md` (contains repo info and API commands)
+2. Say: "Clone the repo" — Claude will download all files via GitHub API
+3. Say: "Read the handoff" to get context
+4. Continue work
 
 Claude must:
-1. Read this entire document first
-2. Copy attached files and rename with incremented counter (v1 → v2)
-3. Work on the new versioned files only
-4. Update this handoff document version if significant decisions are made
+1. Clone the repo using GitHub API (git clone doesn't work due to proxy)
+2. Read this handoff document first
+3. Edit files locally, then push to GitHub periodically
+4. Increment version counters only when explicitly told to
+
+## GitHub Repository
+
+- **Repo:** `dsodol/claude_c_sharp_stuff`
+- **URL:** https://github.com/dsodol/claude_c_sharp_stuff
+- **Access:** Via GitHub REST API (see GITHUB_INSTRUCTIONS.md)
+
+### Workflow
+
+1. **Clone:** Download files using API to `/home/claude/claude_c_sharp_stuff/`
+2. **Edit:** Make changes locally using `str_replace` or `create_file`
+3. **Push:** Upload changes to GitHub using API PUT request (requires file SHA)
+
+### Files in Repo
+
+| File | Purpose |
+|------|---------|
+| `GITHUB_INSTRUCTIONS.md` | How to use GitHub API from Claude's environment |
+| `cc_win_plugin_spec_v1.md` | Complete plugin specification |
+| `cc_csharp_guide_v1.md` | Reusable C# guidelines |
+| `ui_watch_spec_v1.md` | UI automation app specification |
+| `ui_watch_handoff_v1.md` | This document — project continuity |
 
 ---
 
@@ -395,21 +415,9 @@ copy out\bin\Debug\net10.0\win-x64\publish\CcWin.exe .
 7. **Confirm understanding** — Before creating anything, verify scope
 
 ### File Versioning
-All spec files must have version counter. When continuing in new chat:
-- Attached: `cc_win_plugin_spec_v1.md`
-- Create: `cc_win_plugin_spec_v2.md`
-- Work on v2 only
-
----
-
-## Files Created This Session
-
-| File | Purpose |
-|------|---------|
-| cc_win_plugin_spec_v1.md | Complete plugin specification with all code |
-| cc_csharp_guide_v1.md | Reusable C# guidelines for CC |
-| settings.json | Permissions fallback file |
-| This handoff document | Continuity across chats |
+All spec files have version counter. Only increment when explicitly told to:
+- Current: `cc_win_plugin_spec_v1.md`
+- After increment: `cc_win_plugin_spec_v2.md` (rename file, update content)
 
 ---
 
