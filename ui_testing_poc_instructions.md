@@ -93,6 +93,35 @@ Run these commands directly — do NOT use bash, cmd, powershell, or any shell. 
 - All file paths are relative to project root
 - Plugin operations are sandboxed to the project directory
 
+### Silent Tool Calls
+
+When polling or performing routine operations, do NOT output text for each tool call.
+
+**Only output text when:**
+- Reporting results to the user
+- An error occurs
+- User input is needed
+- User explicitly requests verbose mode
+
+**Example — polling for button click:**
+```
+# BAD (too verbose):
+"Checking log file..."
+[calls read_file]
+"No click yet. Checking again..."
+[calls read_file]
+"Still waiting..."
+[calls read_file]
+
+# GOOD (silent polling):
+[calls read_file silently]
+[calls read_file silently]
+[calls read_file silently]
+"Button click detected!"
+```
+
+During Phase 3 (waiting for button click), call `read_file` repeatedly without commentary until the click is detected, then report once.
+
 ### CRITICAL: Error Handling
 
 **Every command and tool call MUST be checked for errors.**
@@ -317,14 +346,19 @@ Report checklist results before proceeding to Phase 2.
 ### Phase 3: Wait for Button Click
 
 1. Tell me the app is running and waiting
-2. Poll the log file using `read_file` periodically
+2. Poll the log file using `read_file` **silently** (no output per call)
 3. Look for "Button clicked" in the log content
-4. When you see it, proceed to Phase 4
+4. When you see it, report once and proceed to Phase 4
+
+**Important:** Use silent polling — do NOT output text for each `read_file` call. Only speak when:
+- You first inform the user the app is waiting
+- You detect the button click
+- An error occurs
 
 **Phase 3 Verification Checklist:**
 ```
 - [ ] Informed user that app is running and waiting for click
-- [ ] Polling log file with read_file
+- [ ] Polling log file silently with read_file
 - [ ] Detected "Button clicked" in log
 ```
 
