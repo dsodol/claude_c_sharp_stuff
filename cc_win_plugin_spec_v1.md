@@ -35,7 +35,7 @@ If you CANNOT see the plugin, say so immediately. Do not pretend to have access.
 
 MCP server plugin for Claude Code on Windows. Provides native Windows tools so CC never needs shell commands.
 
-**MVP Scope:** Five tools — list_files, run_process, read_file, close_window, get_build_info
+**MVP Scope:** Six tools — list_files, run_process, read_file, close_window, get_build_info, wait_for_pattern
 
 ---
 
@@ -67,7 +67,8 @@ MCP server plugin for Claude Code on Windows. Provides native Windows tools so C
     │       ├── RunProcessTool.cs
     │       ├── ReadFileTool.cs
     │       ├── CloseWindowTool.cs
-    │       └── GetBuildInfoTool.cs
+    │       ├── GetBuildInfoTool.cs
+    │       └── WaitForPatternTool.cs
     ├── skills/
     │   └── windows-native/
     │       └── SKILL.md
@@ -311,6 +312,67 @@ No parameters required.
 - Build number format: `YYYY_MM_DD__HH_mm__NNN`
 - Plugin directory is where the exe is located (used for logs)
 - Project directory is the sandbox root (set by CC)
+
+---
+
+### 6. wait_for_pattern
+
+Block until a pattern appears in a file. Polls internally — one tool call, no output spam.
+
+**Input:**
+```json
+{
+  "path": "logs/app.log",
+  "pattern": "Button clicked",
+  "timeout_ms": 60000,
+  "poll_interval_ms": 500
+}
+```
+
+- `path` (string, required): Relative path to file
+- `pattern` (string, required): Text pattern to wait for (substring match)
+- `timeout_ms` (integer, optional): Maximum wait time in milliseconds. Default: 60000 (1 minute)
+- `poll_interval_ms` (integer, optional): How often to check. Default: 500
+
+**Output (success):**
+```json
+{
+  "found": true,
+  "line": "[2025-12-16 14:30:05.456] [INFO] Button clicked",
+  "line_number": 5,
+  "elapsed_ms": 3200
+}
+```
+
+**Output (timeout):**
+```json
+{
+  "found": false,
+  "elapsed_ms": 60000,
+  "error": "Timeout waiting for pattern: Button clicked"
+}
+```
+
+**Errors:**
+- Path outside project directory → `{ "error": "Path not allowed: {path}" }`
+- File not found → `{ "error": "File not found: {path}" }`
+- Invalid timeout → `{ "error": "Invalid timeout_ms: must be positive" }`
+
+**Notes:**
+- Use this instead of polling with `read_file` in a loop
+- Returns immediately when pattern is found
+- Returns the full line containing the pattern
+- Case-sensitive match
+- Reads file from disk on each poll (sees live updates)
+
+**Example usage:**
+```
+# Wait for app to log "App started"
+wait_for_pattern(path="logs/app.log", pattern="App started", timeout_ms=10000)
+
+# Wait for button click with longer timeout
+wait_for_pattern(path="logs/app.log", pattern="Button clicked", timeout_ms=120000)
+```
 
 ---
 
@@ -780,6 +842,107 @@ public class GetBuildInfoResult
 ```
 
 ```csharp
+// Tools/WaitForPatternTool.cs
+using System.ComponentModel;
+using System.Diagnostics;
+using ModelContextProtocol.Server;
+
+namespace CcWin.Tools;
+
+[McpServerToolType]
+public static class WaitForPatternTool
+{
+    [McpServerTool]
+    [Description("Block until a pattern appears in a file. Polls internally - one tool call, no output spam. Use instead of polling read_file in a loop.")]
+    public static WaitForPatternResult WaitForPattern(
+        ProjectContext context,
+        AppLogger logger,
+        [Description("Relative path to file")] string path,
+        [Description("Text pattern to wait for (substring match)")] string pattern,
+        [Description("Maximum wait time in milliseconds. Default: 60000")] int timeout_ms = 60000,
+        [Description("How often to check in milliseconds. Default: 500")] int poll_interval_ms = 500)
+    {
+        logger.ToolCall("wait_for_pattern", new { path, pattern, timeout_ms, poll_interval_ms });
+
+        if (timeout_ms <= 0)
+        {
+            logger.ToolResult("wait_for_pattern", false, "Invalid timeout_ms");
+            return new WaitForPatternResult { Error = "Invalid timeout_ms: must be positive" };
+        }
+
+        if (poll_interval_ms <= 0)
+        {
+            poll_interval_ms = 500;
+        }
+
+        if (!context.IsPathAllowed(path, out var absolutePath))
+        {
+            logger.ToolResult("wait_for_pattern", false, $"Path not allowed: {path}");
+            return new WaitForPatternResult { Error = $"Path not allowed: {path}" };
+        }
+
+        var stopwatch = Stopwatch.StartNew();
+
+        while (stopwatch.ElapsedMilliseconds < timeout_ms)
+        {
+            if (File.Exists(absolutePath))
+            {
+                try
+                {
+                    using var stream = new FileStream(absolutePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var reader = new StreamReader(stream);
+                    
+                    int lineNumber = 0;
+                    string? line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        lineNumber++;
+                        if (line.Contains(pattern))
+                        {
+                            stopwatch.Stop();
+                            logger.Info($"Pattern found: '{pattern}' in {path} at line {lineNumber}");
+                            logger.ToolResult("wait_for_pattern", true);
+                            return new WaitForPatternResult
+                            {
+                                Found = true,
+                                Line = line,
+                                LineNumber = lineNumber,
+                                ElapsedMs = (int)stopwatch.ElapsedMilliseconds
+                            };
+                        }
+                    }
+                }
+                catch (IOException)
+                {
+                    // File might be locked, try again
+                }
+            }
+
+            Thread.Sleep(poll_interval_ms);
+        }
+
+        stopwatch.Stop();
+        logger.ToolResult("wait_for_pattern", false, $"Timeout waiting for pattern: {pattern}");
+        return new WaitForPatternResult
+        {
+            Found = false,
+            ElapsedMs = (int)stopwatch.ElapsedMilliseconds,
+            Error = $"Timeout waiting for pattern: {pattern}"
+        };
+    }
+}
+
+public class WaitForPatternResult
+{
+    public bool Found { get; set; }
+    public string? Line { get; set; }
+    public int LineNumber { get; set; }
+    public int ElapsedMs { get; set; }
+    public string? Error { get; set; }
+}
+```
+
+```csharp
 // ProjectContext.cs
 namespace CcWin;
 
@@ -886,6 +1049,7 @@ After reading this skill, you MUST report:
 - **read_file** — Read file contents. Use instead of `cat`, `type`.
 - **close_window** — Close a window by PID. Only works for processes started by run_process.
 - **get_build_info** — Get plugin build number and directory paths. Use to verify plugin is working.
+- **wait_for_pattern** — Block until a pattern appears in a file. Polls internally. Use instead of polling read_file.
 
 ## Rules
 
@@ -943,6 +1107,9 @@ close_window(pid=pid)
 
 ### Check plugin info
 get_build_info()
+
+### Wait for log event
+wait_for_pattern(path="logs/app.log", pattern="Button clicked", timeout_ms=60000)
 ```
 
 ### cc_win_plugin/README.md
@@ -959,6 +1126,7 @@ MCP server plugin for Claude Code on Windows. Provides native Windows tools.
 - **read_file** — Read file contents
 - **close_window** — Close window by PID
 - **get_build_info** — Get plugin build info and directories
+- **wait_for_pattern** — Block until pattern appears in file
 
 ## Build
 
@@ -990,6 +1158,9 @@ These descriptions tell CC when to use each tool:
 
 **get_build_info:**
 > Get plugin build information and directory paths. Use this to verify the plugin is working correctly and to check which directories are being used. Returns build number, plugin directory, project directory, .NET version, and OS version.
+
+**wait_for_pattern:**
+> Block until a pattern appears in a file. Polls internally with configurable interval. Use this instead of polling read_file in a loop. Returns the matching line and line number when found, or error on timeout.
 
 ---
 
@@ -1220,7 +1391,8 @@ All files that must be created (relative to current directory):
             ├── RunProcessTool.cs           ← from "Tools Implementation" section
             ├── ReadFileTool.cs             ← from "Tools Implementation" section
             ├── CloseWindowTool.cs          ← from "Tools Implementation" section
-            └── GetBuildInfoTool.cs         ← from "Tools Implementation" section
+            ├── GetBuildInfoTool.cs         ← from "Tools Implementation" section
+            └── WaitForPatternTool.cs       ← from "Tools Implementation" section
 ```
 
-Total: 18 files to create.
+Total: 19 files to create.
