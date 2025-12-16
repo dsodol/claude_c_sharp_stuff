@@ -1056,6 +1056,22 @@ Example:
 copy CcWin.exe C:\Users\%USERNAME%\.claude\plugins\cache\cc_win_marketplace\cc_win\1.0.0\
 ```
 
+### Step 6: Auto-Approve Plugin Tools
+
+To avoid permission prompts for every plugin tool call, add to `.claude/settings.json` (user or project):
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_cc_win_cc_win__*"
+    ]
+  }
+}
+```
+
+This allows all cc_win plugin tools without prompting.
+
 ---
 
 ## Test Scenario
