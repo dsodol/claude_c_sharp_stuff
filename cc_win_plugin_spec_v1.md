@@ -892,6 +892,24 @@ The plugin must be inside a marketplace folder:
 
 Should show `cc_win: connected`
 
+### After Rebuilding (Plugin Cache)
+
+CC copies the plugin exe to its cache. Rebuilding in the plugin folder does NOT update what CC uses.
+
+**Cache location (Windows):**
+```
+C:\Users\{username}\.claude\plugins\cache\cc_win_marketplace\cc_win\{version}\CcWin.exe
+```
+
+**After every rebuild:**
+1. Copy new exe to cache folder
+2. Restart CC (or use `claude --continue` from terminal)
+
+Example:
+```
+copy CcWin.exe C:\Users\%USERNAME%\.claude\plugins\cache\cc_win_marketplace\cc_win\1.0.0\
+```
+
 ---
 
 ## Test Scenario
