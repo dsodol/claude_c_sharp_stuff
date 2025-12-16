@@ -69,6 +69,7 @@ You have access to the cc_win_plugin which provides native Windows tools. Use th
 | `list_files` | List directory contents | You need to see what files exist in a folder |
 | `run_process` | Launch an application | You need to start a UI app or background process |
 | `read_file` | Read file contents | You need to check logs, config files, or any text file |
+| `wait_for_pattern` | Block until pattern appears in file | Waiting for a specific log entry (e.g., button click) |
 | `close_window` | Gracefully close a window | You need to shut down an application |
 
 ### When to Use Plugin vs Direct Commands
@@ -346,20 +347,21 @@ Report checklist results before proceeding to Phase 2.
 ### Phase 3: Wait for Button Click
 
 1. Tell me the app is running and waiting
-2. Poll the log file using `read_file` **silently** (no output per call)
-3. Look for "Button clicked" in the log content
-4. When you see it, report once and proceed to Phase 4
+2. Use `wait_for_pattern` to wait for "Button clicked" in the log
+3. When pattern is found, proceed to Phase 4
 
-**Important:** Use silent polling — do NOT output text for each `read_file` call. Only speak when:
-- You first inform the user the app is waiting
-- You detect the button click
-- An error occurs
+**Use this single call:**
+```
+wait_for_pattern(path="logs/app.log", pattern="Button clicked", timeout_ms=120000)
+```
+
+This blocks internally until the pattern appears — no polling loop needed, no output spam.
 
 **Phase 3 Verification Checklist:**
 ```
 - [ ] Informed user that app is running and waiting for click
-- [ ] Polling log file silently with read_file
-- [ ] Detected "Button clicked" in log
+- [ ] Called wait_for_pattern (single tool call)
+- [ ] Pattern found (or timeout with clear error)
 ```
 
 ### Phase 4: Close and Report
