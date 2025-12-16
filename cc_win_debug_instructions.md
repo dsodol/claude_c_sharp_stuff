@@ -4,10 +4,86 @@
 
 The plugin crashes when `tools/list` is called. The log shows only "Plugin started" — nothing after.
 
-The test script (`test_mcp.ps1`) sends:
+The test script sends:
 1. initialize → works
 2. initialized notification → works  
 3. tools/list → process crashes
+
+---
+
+## Test Program
+
+Create `test_mcp.cs` in the plugin folder and compile it. Easier than PowerShell.
+
+**Create `test_mcp.cs`:**
+```csharp
+using System.Diagnostics;
+
+var psi = new ProcessStartInfo
+{
+    FileName = @".\CcWin.exe",
+    RedirectStandardInput = true,
+    RedirectStandardOutput = true,
+    RedirectStandardError = true,
+    UseShellExecute = false,
+    CreateNoWindow = true
+};
+
+Console.WriteLine("Starting CcWin.exe...");
+var process = Process.Start(psi)!;
+
+// Read output asynchronously
+process.OutputDataReceived += (s, e) => { if (e.Data != null) Console.WriteLine($"OUT: {e.Data}"); };
+process.ErrorDataReceived += (s, e) => { if (e.Data != null) Console.WriteLine($"ERR: {e.Data}"); };
+process.BeginOutputReadLine();
+process.BeginErrorReadLine();
+
+void Send(string msg)
+{
+    Console.WriteLine($"\n>>> Sending: {msg[..Math.Min(80, msg.Length)]}...");
+    process.StandardInput.WriteLine(msg);
+    Thread.Sleep(500);
+}
+
+// Initialize
+Send(@"{""jsonrpc"":""2.0"",""id"":1,""method"":""initialize"",""params"":{""protocolVersion"":""2024-11-05"",""capabilities"":{},""clientInfo"":{""name"":""test"",""version"":""1.0""}}}");
+
+// Initialized notification
+Send(@"{""jsonrpc"":""2.0"",""method"":""notifications/initialized""}");
+
+// List tools
+Send(@"{""jsonrpc"":""2.0"",""id"":2,""method"":""tools/list""}");
+
+// Call list_files
+Send(@"{""jsonrpc"":""2.0"",""id"":3,""method"":""tools/call"",""params"":{""name"":""list_files"",""arguments"":{""path"":"".""}}}}");
+
+Console.WriteLine("\n>>> Closing stdin...");
+process.StandardInput.Close();
+
+process.WaitForExit(5000);
+if (!process.HasExited) process.Kill();
+
+Console.WriteLine($"\n=== Test Complete ===");
+Console.WriteLine($"Exit code: {(process.HasExited ? process.ExitCode.ToString() : "killed")}");
+Console.WriteLine("Check logs/cc_win_plugin.log for entries");
+```
+
+**Build and run:**
+```
+dotnet new console -n TestMcp -o test_mcp
+copy test_mcp.cs test_mcp\Program.cs
+cd test_mcp
+dotnet run
+cd ..
+```
+
+Or simpler — just run as a script:
+```
+dotnet script test_mcp.cs
+```
+(Requires `dotnet tool install -g dotnet-script` first)
+
+---
 
 ## Task
 
@@ -66,7 +142,7 @@ catch (Exception ex)
 **Test:**
 1. Rebuild: `dotnet publish src/CcWin.csproj -r win-x64`
 2. Copy: `copy out\bin\Debug\net10.0\win-x64\publish\CcWin.exe .`
-3. Run: `powershell -ExecutionPolicy Bypass -File test_mcp.ps1`
+3. Run: `cd test_mcp && dotnet run && cd ..`
 4. Check `logs/cc_win_plugin.log`
 
 **Report:** What's the last log entry? Did it catch an exception?
@@ -154,4 +230,4 @@ Remove any found. All output must go through the logger.
 After each step, report:
 1. Last line in `logs/cc_win_plugin.log`
 2. Any error messages
-3. Did test_mcp.ps1 complete or crash?
+3. Did test complete or crash?
