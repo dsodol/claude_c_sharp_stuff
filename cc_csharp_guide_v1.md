@@ -225,6 +225,85 @@ STOPPING. Build failed with compiler error. Need to fix the source code before p
 - Use `snake_case` for project/folder names
 - Use `PascalCase` for C# namespaces, classes, methods
 
+## Build Number Tracking
+
+**All apps must track and display a build number.**
+
+### Build Number Format
+
+```
+YYYY-MM-DD_HH-mm_NNN
+```
+
+Example: `2025-12-16_14-30_001`
+
+- Date and time of build
+- Counter (3 digits, zero-padded)
+- Increase counter every build
+
+### Implementation
+
+Create a static class `BuildInfo`:
+
+```csharp
+public static class BuildInfo
+{
+    public const string Number = "2025-12-16_14-30_001";  // Update every build
+    
+    public static string PluginDirectory => AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+    public static string ProjectDirectory => Directory.GetCurrentDirectory();
+}
+```
+
+### Logging
+
+**Always log build number at startup:**
+
+```csharp
+AppLogger.Info($"Build: {BuildInfo.Number}");
+AppLogger.Info($"Plugin directory: {BuildInfo.PluginDirectory}");
+AppLogger.Info($"Project directory: {BuildInfo.ProjectDirectory}");
+```
+
+### CLI Apps
+
+Add an optional command line parameter `--version` or `-v`:
+
+```csharp
+if (args.Contains("--version") || args.Contains("-v"))
+{
+    Console.WriteLine($"Build: {BuildInfo.Number}");
+    Console.WriteLine($"Plugin directory: {BuildInfo.PluginDirectory}");
+    Console.WriteLine($"Project directory: {BuildInfo.ProjectDirectory}");
+    return;
+}
+```
+
+### UI Apps (WPF)
+
+Show build number in the window title or a status bar:
+
+```csharp
+// In MainWindow constructor or Loaded event
+Title = $"App Name - Build {BuildInfo.Number}";
+```
+
+Or add a small label in the corner of the window.
+
+### Updating the Build Number
+
+**Every time you build:**
+1. Update the `BuildInfo.Number` constant
+2. Use current date/time
+3. Increment the counter
+
+Example sequence:
+```
+2025-12-16_14-30_001
+2025-12-16_14-35_002
+2025-12-16_15-00_003
+```
+
 ## Permissions
 
 File: `.claude/settings.json`
