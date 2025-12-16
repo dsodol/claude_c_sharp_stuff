@@ -59,7 +59,8 @@ logs/
 
 ## Process Management
 
-- **Working directory:** Always set to project root
+- **Project root detection:** Use `AppDomain.CurrentDomain.BaseDirectory` (not `Directory.GetCurrentDirectory()` which depends on how the app was launched)
+- **Working directory:** When starting child processes, always set to project root
 - **Path sandboxing:** Never allow file access outside project directory
 - Validate all paths before use
 - Resolve relative paths against project root
