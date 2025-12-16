@@ -2,16 +2,42 @@
 
 ---
 
+## CRITICAL: Project Initialization
+
+**Before doing anything else:**
+
+1. Check if `CLAUDE.md` exists in the project root
+2. If NOT, create it with this content:
+
+```markdown
+# CLAUDE.md
+
+## Rules
+
+1. **STOP on issues.** When you find a problem, DO NOT fix it automatically. Instead:
+   - Explain the issue clearly
+   - Propose a solution
+   - Wait for my approval before proceeding
+
+2. **Report errors immediately.** Never ignore failed commands or tool errors.
+
+3. **Verify before proceeding.** After each major step, confirm success before moving on.
+```
+
+3. If CLAUDE.md already exists, read it and follow its rules
+
+---
+
 ## CRITICAL: First Steps After Reading
 
 After reading these instructions, you MUST:
 
 1. **Report plugin visibility:** "I can see cc_win_plugin with tools: [list them]" OR "I cannot see cc_win_plugin"
-2. **Confirm understanding:** State that you understand the build process uses `dotnet publish -r win-x64`
+2. **Confirm understanding:** State that you understand the build process uses `dotnet publish -r win-x64` to create a standalone exe
 3. **Confirm error handling:** State that you will stop and report any errors immediately
 
 Example acknowledgment:
-> "I've read the ui_testing_poc instructions. I can see cc_win_plugin with tools: list_files, run_process, read_file, close_window. I understand I need to use `dotnet publish -r win-x64` to build a standalone exe. I will stop and report any errors immediately. Ready to proceed."
+> "I've read the ui_testing_poc instructions. CLAUDE.md exists/created. I can see cc_win_plugin with tools: list_files, run_process, read_file, close_window. I understand I need to use `dotnet publish -r win-x64` to build a standalone exe. I will stop and report any errors immediately. Ready to proceed."
 
 If you CANNOT see the plugin, say so immediately.
 
@@ -100,7 +126,21 @@ ui_testing_poc/
 │   └── obj/
 ├── logs/                         (created at runtime by app)
 │   └── app.log
+├── CLAUDE.md                     (created at project start)
+├── .gitignore
 └── UiTestingPoc.exe              (copied to project root after publish)
+```
+
+### .gitignore
+
+```
+out/
+logs/
+*.exe
+*.dll
+*.pdb
+*.user
+.vs/
 ```
 
 ---
@@ -126,10 +166,23 @@ ui_testing_poc/
 
 ## Build Commands
 
+**IMPORTANT:** You must use `dotnet publish` with `-r win-x64` to create a standalone executable.
+
 ```
 dotnet publish src/UiTestingPoc.csproj -r win-x64
 copy out\bin\Debug\net10.0-windows\win-x64\publish\UiTestingPoc.exe .
 ```
+
+**Why `dotnet publish -r win-x64`?**
+- `dotnet build` creates a `.dll` that requires the `dotnet` runtime to execute — it will NOT run as a standalone app
+- `dotnet publish -r win-x64` creates a **self-contained `.exe`** with all dependencies bundled
+- The `-r win-x64` flag targets Windows 64-bit
+
+**Common mistake:** Using `dotnet build` or `dotnet run` instead of `dotnet publish -r win-x64`. This will NOT work.
+
+**Output location:** `out\bin\Debug\net10.0-windows\win-x64\publish\UiTestingPoc.exe`
+
+After publishing, copy the exe to project root so `run_process` can find it easily.
 
 ---
 
@@ -168,10 +221,12 @@ When the button is clicked, the app writes a log entry. That's all it does.
 
 Create a static class `AppLogger` with:
 
-- **Log file path:** `logs/app.log` relative to the executable's directory
+- **Log file path:** `logs/app.log` relative to the **current working directory** (which is project root when launched via `run_process`)
 - **Directory creation:** Create `logs/` folder if it doesn't exist
 - **Log format:** `[yyyy-MM-dd HH:mm:ss.fff] [INFO] {message}`
 - **Write mode:** Append to file
+
+**Note:** The exe is copied to project root and `run_process` runs it from there, so `logs/` will be created in the project root (e.g., `ui_testing_poc/logs/app.log`).
 
 ### Events to Log
 
@@ -199,13 +254,17 @@ After clicking the button once:
 
 ### Phase 1: Build
 
-1. Create all source files listed in the project structure
-2. Run `dotnet publish src/UiTestingPoc.csproj -r win-x64`
-3. Copy the exe to project root: `copy out\bin\Debug\net10.0-windows\win-x64\publish\UiTestingPoc.exe .`
-4. Verify the exe exists
+1. Check/create `CLAUDE.md` (see Project Initialization section)
+2. Create `.gitignore`
+3. Create all source files listed in the project structure
+4. Run `dotnet publish src/UiTestingPoc.csproj -r win-x64`
+5. Copy the exe to project root: `copy out\bin\Debug\net10.0-windows\win-x64\publish\UiTestingPoc.exe .`
+6. Verify the exe exists
 
 **Phase 1 Verification Checklist:**
 ```
+- [ ] CLAUDE.md exists (created or already present)
+- [ ] .gitignore created
 - [ ] All source files created (App.xaml, App.xaml.cs, MainWindow.xaml, MainWindow.xaml.cs, AppLogger.cs, UiTestingPoc.csproj)
 - [ ] dotnet publish completed with exit code 0
 - [ ] out\bin\Debug\net10.0-windows\win-x64\publish\ directory exists
@@ -248,6 +307,13 @@ Report checklist results before proceeding to Phase 2.
 3. Look for "Button clicked" in the log content
 4. When you see it, proceed to Phase 4
 
+**Phase 3 Verification Checklist:**
+```
+- [ ] Informed user that app is running and waiting for click
+- [ ] Polling log file with read_file
+- [ ] Detected "Button clicked" in log
+```
+
 ### Phase 4: Close and Report
 
 1. Close the application gracefully using `close_window` with the PID
@@ -270,8 +336,11 @@ Report checklist results before proceeding to Phase 2.
 
 ## Success Criteria
 
+- [ ] CLAUDE.md exists in project root
+- [ ] App built with `dotnet publish -r win-x64` (NOT `dotnet build`)
 - [ ] App window appears on screen
 - [ ] Log file is created with startup message
 - [ ] You detect when I click the button (by reading the log)
 - [ ] App closes without crashing
 - [ ] You report the full sequence of events
+- [ ] You stopped and asked on any issues (did not auto-fix)
