@@ -140,7 +140,7 @@ catch (Exception ex)
 ```
 
 **Test:**
-1. Rebuild: `dotnet publish src/CcWin.csproj -r win-x64`
+1. Rebuild: `dotnet publish src/CcWin.csproj -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true`
 2. Copy to plugin root: `copy out\bin\Debug\net10.0\win-x64\publish\CcWin.exe .`
 3. Copy to CC cache: `copy CcWin.exe C:\Users\%USERNAME%\.claude\plugins\cache\cc_win_marketplace\cc_win\1.0.0\`
 4. Run test: `cd test_mcp && dotnet run && cd ..`
