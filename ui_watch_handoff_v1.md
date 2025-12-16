@@ -377,7 +377,7 @@ After installing in CC:
 
 ```
 cd cc_win_marketplace/cc_win_plugin
-dotnet publish src/CcWin.csproj -r win-x64
+dotnet publish src/CcWin.csproj -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true
 copy out\bin\Debug\net10.0\win-x64\publish\CcWin.exe .
 ```
 
