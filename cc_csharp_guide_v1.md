@@ -59,8 +59,9 @@ logs/
 
 ## Process Management
 
-- **Project root detection:** Use `AppDomain.CurrentDomain.BaseDirectory` (not `Directory.GetCurrentDirectory()` which depends on how the app was launched)
-- **Working directory:** When starting child processes, always set to project root
+- **Plugin directory:** Use `AppDomain.CurrentDomain.BaseDirectory` for plugin's own files (logs)
+- **Project directory:** Use `Directory.GetCurrentDirectory()` for sandbox (file operations within user's project)
+- **Working directory:** When starting child processes, set to project directory
 - **Path sandboxing:** Never allow file access outside project directory
 - Validate all paths before use
 - Resolve relative paths against project root
