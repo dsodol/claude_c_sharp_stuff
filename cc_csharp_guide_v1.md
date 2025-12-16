@@ -165,7 +165,7 @@ Use **Code-Behind + Service Layer**. Do NOT use MVVM unless explicitly requested
 
 ## 5. UI Configuration Persistence
 
-**All UI configuration must be persistent by default.**
+**Key Principle:** If a user can resize, move, collapse, or configure any UI element, that configuration MUST survive application restart. Same with all application options.
 
 When implementing any UI element with user-configurable state, it MUST be:
 1. **Saved automatically** when the user changes it
