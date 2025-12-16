@@ -179,7 +179,8 @@ logs/
 
 ## 4. Architecture
 
-Use **Code-Behind + Service Layer**. Do NOT use MVVM unless explicitly requested.
+- **UI Framework:** WPF — unless WinForms is explicitly requested
+- **Pattern:** Code-Behind + Service Layer — do NOT use MVVM unless explicitly requested
 
 ---
 
