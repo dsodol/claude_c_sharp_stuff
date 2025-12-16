@@ -5,38 +5,26 @@
 
 ---
 
-## How to Use This Document
+## Instructions for Claude
 
-When starting a new chat:
+When the user says "clone the repo" or "read the handoff":
 
-1. Attach `GITHUB_INSTRUCTIONS.md` (contains repo info and API commands)
-2. Say: "Clone the repo" — Claude will download all files via GitHub API
-3. Say: "Read the handoff" to get context
-4. Continue work
+1. `GITHUB_INSTRUCTIONS.md` will be attached as a project file — read it for repo URL, PAT, and API commands
+2. Clone the repo using GitHub API (git clone doesn't work due to proxy)
+3. Read this handoff document to understand project context
+4. Edit files locally, push to GitHub periodically
+5. Do NOT increment version counters unless explicitly told to
 
-Claude must:
-1. Clone the repo using GitHub API (git clone doesn't work due to proxy)
-2. Read this handoff document first
-3. Edit files locally, then push to GitHub periodically
-4. Increment version counters only when explicitly told to
+### GitHub Workflow
 
-## GitHub Repository
-
-- **Repo:** `dsodol/claude_c_sharp_stuff`
-- **URL:** https://github.com/dsodol/claude_c_sharp_stuff
-- **Access:** Via GitHub REST API (see GITHUB_INSTRUCTIONS.md)
-
-### Workflow
-
-1. **Clone:** Download files using API to `/home/claude/claude_c_sharp_stuff/`
-2. **Edit:** Make changes locally using `str_replace` or `create_file`
-3. **Push:** Upload changes to GitHub using API PUT request (requires file SHA)
+1. **Clone:** Download files via API to `/home/claude/claude_c_sharp_stuff/`
+2. **Edit:** Use `str_replace` or `create_file` locally
+3. **Push:** Upload via API PUT request (requires current file SHA)
 
 ### Files in Repo
 
 | File | Purpose |
 |------|---------|
-| `GITHUB_INSTRUCTIONS.md` | How to use GitHub API from Claude's environment |
 | `cc_win_plugin_spec_v1.md` | Complete plugin specification |
 | `cc_csharp_guide_v1.md` | Reusable C# guidelines |
 | `ui_watch_spec_v1.md` | UI automation app specification |
