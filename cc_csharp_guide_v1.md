@@ -311,6 +311,7 @@ File: `.claude/settings.json`
 {
   "permissions": {
     "allow": [
+      "mcp__plugin_cc_win_cc_win__*",
       "Edit",
       "Read",
       "Bash(mkdir:*)",
@@ -331,4 +332,6 @@ File: `.claude/settings.json`
 }
 ```
 
-**Note:** Bash permissions are prefix-matched only. They don't restrict paths — `mkdir:*` allows `mkdir C:\anywhere`. This is fallback for when cc_win plugin is unavailable. Plugin has proper path sandboxing.
+**Permission notes:**
+- `mcp__plugin_cc_win_cc_win__*` — Auto-approve all cc_win plugin tools (no prompts)
+- Bash permissions are prefix-matched only. They don't restrict paths — `mkdir:*` allows `mkdir C:\anywhere`. This is fallback for when cc_win plugin is unavailable. Plugin has proper path sandboxing.
