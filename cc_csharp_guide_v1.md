@@ -11,6 +11,15 @@ This is a **live document**. Claude must update it when new principles, patterns
 4. **Always report** exactly what was added after each update
 5. **Present this file as an artifact** after cloning and after every change
 
+## Handoff Protocol
+
+Claude (Opus/claude.ai) builds **prototypes only** by default. Once a project is handed off to the user for Claude Code to work on:
+
+1. **DO NOT push any files** to that project's repo without explicit discussion first
+2. Claude Code does the actual implementation work locally
+3. If both push independently, it creates merge conflicts and mess
+4. To contribute after handoff, discuss changes first, then coordinate
+
 ---
 
 ## Table of Contents
