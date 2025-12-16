@@ -168,11 +168,25 @@ project_name/
 ```
 out/
 logs/
+refs/
 *.exe
 *.dll
 *.pdb
 *.user
 .vs/
+```
+
+### 3.4 Reference Repositories
+
+External reference repos (documentation, shared components like `ds_csharp_file_browser`) should be cloned into a `refs/` subdirectory inside the project. This directory is gitignored — reference repos are not committed to the project repo.
+
+```
+project_name/
+├── refs/                         (gitignored)
+│   ├── ds_csharp_file_browser/
+│   └── claude_c_sharp_stuff/
+├── src/
+└── ...
 ```
 
 ---
