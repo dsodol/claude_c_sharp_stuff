@@ -2,6 +2,31 @@
 
 ---
 
+## CRITICAL: Project Initialization
+
+When you start working on any project, FIRST check if `CLAUDE.md` exists in the project root.
+
+**If CLAUDE.md does NOT exist, create it immediately with this content:**
+
+```markdown
+# CLAUDE.md
+
+## Rules
+
+1. **STOP on issues.** When you find a problem, DO NOT fix it automatically. Instead:
+   - Explain the issue clearly
+   - Propose a solution
+   - Wait for my approval before proceeding
+
+2. **Report errors immediately.** Never ignore failed commands or tool errors.
+
+3. **Verify before proceeding.** After each major step, confirm success before moving on.
+```
+
+**If CLAUDE.md exists, read it first** and follow any project-specific rules it contains.
+
+---
+
 ## CRITICAL: Reading Instructions
 
 After reading this guide or any spec, you MUST:
