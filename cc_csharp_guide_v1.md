@@ -1,12 +1,39 @@
 # C# Development Guide for Claude Code
 
+## Table of Contents
+
+1. [Critical Rules](#1-critical-rules)
+   1. [Project Initialization](#11-project-initialization)
+   2. [Reading Instructions](#12-reading-instructions)
+   3. [Checklists for Verification](#13-checklists-for-verification)
+2. [Build](#2-build)
+   1. [Standalone Executables](#21-standalone-executables)
+   2. [Common Mistakes](#22-common-mistakes)
+3. [Project Structure](#3-project-structure)
+   1. [Directory Layout](#31-directory-layout)
+   2. [csproj Output Paths](#32-csproj-output-paths)
+   3. [.gitignore](#33-gitignore)
+4. [Architecture](#4-architecture)
+5. [UI Configuration Persistence](#5-ui-configuration-persistence)
+6. [Logging](#6-logging)
+7. [Process Management](#7-process-management)
+   1. [Directories](#71-directories)
+   2. [Path Sandboxing](#72-path-sandboxing)
+   3. [Error Handling](#73-error-handling)
+8. [Silent Tool Calls](#8-silent-tool-calls)
+9. [Naming](#9-naming)
+10. [Build Number Tracking](#10-build-number-tracking)
+11. [Permissions](#11-permissions)
+
 ---
 
-## CRITICAL: Project Initialization
+## 1. Critical Rules
+
+### 1.1 Project Initialization
 
 When you start working on any project, FIRST check if `CLAUDE.md` exists in the project root.
 
-**If CLAUDE.md does NOT exist, create it immediately with this content:**
+**If CLAUDE.md does NOT exist, create it immediately:**
 
 ```markdown
 # CLAUDE.md
@@ -23,103 +50,74 @@ When you start working on any project, FIRST check if `CLAUDE.md` exists in the 
 3. **Verify before proceeding.** After each major step, confirm success before moving on.
 ```
 
-**If CLAUDE.md exists, read it first** and follow any project-specific rules it contains.
+**If CLAUDE.md exists, read it first** and follow any project-specific rules.
 
----
-
-## CRITICAL: Reading Instructions
+### 1.2 Reading Instructions
 
 After reading this guide or any spec, you MUST:
 
 1. **Report understanding:** State what you understood and what tools/plugins are available
-2. **Confirm plugin visibility:** If a plugin is mentioned, confirm you can see it in your available tools
+2. **Confirm plugin visibility:** If a plugin is mentioned, confirm you can see it
 3. **Ask if unclear:** If anything is ambiguous, ask before proceeding
 
-Example acknowledgment:
-> "I've read the guide. I see the cc_win_plugin is available with tools: list_files, run_process, read_file, close_window. I understand I should use `dotnet publish` with `-r win-x64` for standalone builds. Ready to proceed."
+Example:
+> "I've read the guide. I see cc_win_plugin with tools: list_files, run_process, read_file, close_window, get_build_info, wait_for_pattern. Ready to proceed."
 
----
+### 1.3 Checklists for Verification
 
-## CRITICAL: Checklists for Verification
-
-When you create instructions for yourself or receive instructions, you MUST create explicit post-verification checklists.
+Create explicit post-verification checklists for every major step.
 
 **Example — after building:**
 ```
-Build verification checklist:
 - [ ] dotnet publish completed without errors
-- [ ] out\bin\Debug\net10.0-windows\win-x64\publish\ directory exists
-- [ ] ProjectName.exe exists in publish folder
-- [ ] Copied exe to project root
-- [ ] Project root contains ProjectName.exe
-```
-
-**Example — after running a process:**
-```
-Process verification checklist:
-- [ ] run_process returned a PID (not an error)
-- [ ] PID is a positive integer
-- [ ] Expected output file/log exists (if applicable)
-- [ ] No error messages in response
+- [ ] publish directory exists
+- [ ] exe exists in publish folder
+- [ ] exe copied to project root
 ```
 
 Always run through the checklist and report results before proceeding.
 
 ---
 
-## Build
+## 2. Build
 
 - **.NET version:** 10
 - **Configuration:** Debug only — **NEVER use Release**
 - **After build:** Copy exe to project root
 
-### Building Standalone Executables
+### 2.1 Standalone Executables
 
-**This is critical.** To create a standalone `.exe` that runs without .NET installed:
-
+**Required command:**
 ```
 dotnet publish src/ProjectName.csproj -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true
 ```
 
-**What each flag means:**
-- `-c Debug` — Use Debug configuration (REQUIRED — never use Release)
-- `-r win-x64` — Target Windows 64-bit runtime
-- `--self-contained true` — Include .NET runtime in the exe (no .NET install needed)
-- `-p:PublishSingleFile=true` — Bundle everything into ONE exe file
+**Flags:**
+- `-c Debug` — Debug configuration (REQUIRED)
+- `-r win-x64` — Windows 64-bit
+- `--self-contained true` — Include .NET runtime
+- `-p:PublishSingleFile=true` — Single exe file
 
-**Why all four flags?**
-- Without `--self-contained true` → requires .NET runtime installed
-- Without `-p:PublishSingleFile=true` → creates multiple DLLs alongside exe
+**Output:** `out\bin\Debug\net10.0-windows\win-x64\publish\ProjectName.exe`
 
-**Output location:** `out\bin\Debug\net10.0\win-x64\publish\ProjectName.exe`
-
-**For WPF apps** (target framework `net10.0-windows`):
-```
-dotnet publish src/ProjectName.csproj -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true
-```
-Output: `out\bin\Debug\net10.0-windows\win-x64\publish\ProjectName.exe`
-
-**After publish, copy to project root:**
-```
-copy out\bin\Debug\net10.0\win-x64\publish\ProjectName.exe .
-```
-
-Or for WPF:
+**After publish:**
 ```
 copy out\bin\Debug\net10.0-windows\win-x64\publish\ProjectName.exe .
 ```
 
-### Common Mistakes
+### 2.2 Common Mistakes
 
 | Wrong | Right |
 |-------|-------|
-| `dotnet build` | `dotnet publish -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true` |
-| `dotnet publish -r win-x64` (missing flags) | `dotnet publish -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true` |
-| `dotnet publish -c Release` | `dotnet publish -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true` |
+| `dotnet build` | Full publish command |
+| `dotnet publish -r win-x64` (missing flags) | Full publish command |
+| `-c Release` | `-c Debug` |
 
-**`dotnet build` does NOT create a standalone exe.** It creates a .dll that requires `dotnet` to run. Always use the full publish command with all four flags.
+---
 
-## Project Structure
+## 3. Project Structure
+
+### 3.1 Directory Layout
 
 ```
 project_name/
@@ -127,8 +125,6 @@ project_name/
 │   ├── ProjectName.csproj
 │   └── *.cs
 ├── out/                          (generated)
-│   ├── bin/
-│   └── obj/
 ├── logs/                         (runtime)
 ├── .claude/
 │   └── settings.json
@@ -137,7 +133,7 @@ project_name/
 └── README.md
 ```
 
-## csproj Output Paths
+### 3.2 csproj Output Paths
 
 ```xml
 <PropertyGroup>
@@ -147,9 +143,7 @@ project_name/
 </PropertyGroup>
 ```
 
-## .gitignore
-
-Always include:
+### 3.3 .gitignore
 
 ```
 out/
@@ -161,104 +155,117 @@ logs/
 .vs/
 ```
 
-## Architecture
+---
+
+## 4. Architecture
 
 Use **Code-Behind + Service Layer**. Do NOT use MVVM unless explicitly requested.
 
-## Logging
+---
 
-- **Location:** `logs/` subdirectory (relative to project root)
+## 5. UI Configuration Persistence
+
+**All UI configuration must be persistent by default.**
+
+When implementing any UI element with user-configurable state, it MUST be:
+1. **Saved automatically** when the user changes it
+2. **Restored automatically** when the application starts
+3. **Stored in AppSettings** with a sensible default value
+
+### UI State That Must Be Persisted
+
+| UI Element | Properties to Persist |
+|------------|----------------------|
+| Resizable panels | Width/Height |
+| Splitters/Dividers | Position |
+| Collapsible sections | Expanded/Collapsed |
+| Column widths | Width of each column |
+| Tab selection | Active tab index |
+| Sort order | Column and direction |
+| Filter state | Active filters |
+| Window | Size, Position, Maximized state |
+
+### Implementation
+
+```csharp
+// Save on change
+private void Splitter_DragCompleted(object sender, EventArgs e)
+{
+    AppSettings.Instance.SplitterPosition = MainSplitter.Width;
+    AppSettings.Instance.Save();
+}
+
+// Restore on load
+private void Window_Loaded(object sender, RoutedEventArgs e)
+{
+    MainSplitter.Width = AppSettings.Instance.SplitterPosition;
+}
+```
+
+---
+
+## 6. Logging
+
+- **Location:** `logs/` subdirectory
 - **Rotation:** On startup, rename existing log to timestamped version
-- **Cleanup:** Keep only 3 log files, delete oldest first
+- **Cleanup:** Keep only 3 log files
 - **Format:** `[yyyy-MM-dd HH:mm:ss.fff] [LEVEL] Message`
 
-## Process Management
+---
 
-### Directories
+## 7. Process Management
 
-- **Plugin directory:** Use `AppDomain.CurrentDomain.BaseDirectory` for plugin's own files (logs)
-- **Project directory:** Use `Directory.GetCurrentDirectory()` for sandbox (file operations within user's project)
-- **Working directory:** When starting child processes, set to project directory
+### 7.1 Directories
 
-### Path Sandboxing
+- **Plugin directory:** `AppDomain.CurrentDomain.BaseDirectory`
+- **Project directory:** `Directory.GetCurrentDirectory()`
+
+### 7.2 Path Sandboxing
 
 - Never allow file access outside project directory
 - Validate all paths before use
-- Resolve relative paths against project root
 - Block `..` escaping and absolute paths outside project
 
-### CRITICAL: Process Execution Error Handling
-
-When you run a process (via `run_process` or direct command), you MUST check the result:
+### 7.3 Error Handling
 
 **For `run_process` (plugin tool):**
-```
 1. Check response for "error" field
-2. If error exists → STOP and report the error
-3. If success → verify PID is a positive integer
-4. If PID is missing or invalid → STOP and report
-```
+2. If error → STOP and report
+3. Verify PID is positive integer
 
-**For direct commands (`dotnet`, `copy`, etc.):**
-```
-1. Check exit code (0 = success, non-zero = failure)
-2. Check stderr for error messages
-3. If failure → STOP and report the error with full output
-4. Do NOT proceed to next step if previous step failed
-```
+**For direct commands:**
+1. Check exit code (0 = success)
+2. Check stderr for errors
+3. If failure → STOP and report
 
-**Example error handling flow:**
-```
-I ran: dotnet publish src/App.csproj -r win-x64
+**Never ignore errors.**
 
-Result: Exit code 1
-Stderr: error CS1002: ; expected
+---
 
-STOPPING. Build failed with compiler error. Need to fix the source code before proceeding.
-```
-
-**Never ignore errors.** If a command or tool call fails, you must:
-1. Report the failure immediately
-2. Include the full error message
-3. Stop the current workflow
-4. Suggest how to fix the issue
-
-## Silent Tool Calls
+## 8. Silent Tool Calls
 
 When polling or performing routine operations, do NOT output text for each tool call.
 
-**Only output text when:**
-- Reporting results to the user
+**Only output when:**
+- Reporting results
 - An error occurs
-- User input is needed
-- User explicitly requests verbose mode
+- User input needed
+- User requests verbose mode
 
-**Example — polling a log file:**
-```
-# BAD (too verbose):
-"Reading log file..."
-[calls read_file]
-"Checking again..."
-[calls read_file]
+---
 
-# GOOD (silent):
-[calls read_file silently]
-[calls read_file silently]
-"Event detected in log!"
-```
+## 9. Naming
 
-This keeps output clean during automated workflows.
+- `snake_case` for project/folder names
+- `PascalCase` for C# namespaces, classes, methods
 
-## Naming
+---
 
-- Use `snake_case` for project/folder names
-- Use `PascalCase` for C# namespaces, classes, methods
-
-## Build Number Tracking
+## 10. Build Number Tracking
 
 **All apps must track and display a build number.**
 
-### Build Number Format
+### Format
 
 ```
 YYYY_MM_DD__HH_mm__NNN
@@ -266,74 +273,26 @@ YYYY_MM_DD__HH_mm__NNN
 
 Example: `2025_12_16__14_30__001`
 
-- Date and time of build
-- Counter (3 digits, zero-padded)
-- Increase counter every build
-
 ### Implementation
-
-Create a static class `BuildInfo`:
 
 ```csharp
 public static class BuildInfo
 {
     public const string Number = "2025_12_16__14_30__001";  // Update every build
-    
-    public static string PluginDirectory => AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+    public static string PluginDirectory => AppDomain.CurrentDomain.BaseDirectory;
     public static string ProjectDirectory => Directory.GetCurrentDirectory();
 }
 ```
 
-### Logging
+### Display
 
-**Always log build number at startup:**
+- **CLI:** Support `--version` flag
+- **UI:** Show in window title or status bar
+- **Logs:** Log at startup
 
-```csharp
-AppLogger.Info($"Build: {BuildInfo.Number}");
-AppLogger.Info($"Plugin directory: {BuildInfo.PluginDirectory}");
-AppLogger.Info($"Project directory: {BuildInfo.ProjectDirectory}");
-```
+---
 
-### CLI Apps
-
-Add an optional command line parameter `--version` or `-v`:
-
-```csharp
-if (args.Contains("--version") || args.Contains("-v"))
-{
-    Console.WriteLine($"Build: {BuildInfo.Number}");
-    Console.WriteLine($"Plugin directory: {BuildInfo.PluginDirectory}");
-    Console.WriteLine($"Project directory: {BuildInfo.ProjectDirectory}");
-    return;
-}
-```
-
-### UI Apps (WPF)
-
-Show build number in the window title or a status bar:
-
-```csharp
-// In MainWindow constructor or Loaded event
-Title = $"App Name - Build {BuildInfo.Number}";
-```
-
-Or add a small label in the corner of the window.
-
-### Updating the Build Number
-
-**Every time you build:**
-1. Update the `BuildInfo.Number` constant
-2. Use current date/time
-3. Increment the counter
-
-Example sequence:
-```
-2025_12_16__14_30__001
-2025_12_16__14_35__002
-2025_12_16__15_00__003
-```
-
-## Permissions
+## 11. Permissions
 
 File: `.claude/settings.json`
 
@@ -362,6 +321,4 @@ File: `.claude/settings.json`
 }
 ```
 
-**Permission notes:**
-- `mcp__plugin_cc_win_cc_win__*` — Auto-approve all cc_win plugin tools (no prompts)
-- Bash permissions are prefix-matched only. They don't restrict paths — `mkdir:*` allows `mkdir C:\anywhere`. This is fallback for when cc_win plugin is unavailable. Plugin has proper path sandboxing.
+`mcp__plugin_cc_win_cc_win__*` — Auto-approve all cc_win plugin tools.
