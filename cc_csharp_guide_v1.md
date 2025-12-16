@@ -219,6 +219,32 @@ STOPPING. Build failed with compiler error. Need to fix the source code before p
 3. Stop the current workflow
 4. Suggest how to fix the issue
 
+## Silent Tool Calls
+
+When polling or performing routine operations, do NOT output text for each tool call.
+
+**Only output text when:**
+- Reporting results to the user
+- An error occurs
+- User input is needed
+- User explicitly requests verbose mode
+
+**Example — polling a log file:**
+```
+# BAD (too verbose):
+"Reading log file..."
+[calls read_file]
+"Checking again..."
+[calls read_file]
+
+# GOOD (silent):
+[calls read_file silently]
+[calls read_file silently]
+"Event detected in log!"
+```
+
+This keeps output clean during automated workflows.
+
 ## Naming
 
 - Use `snake_case` for project/folder names
