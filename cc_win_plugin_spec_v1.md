@@ -9,7 +9,7 @@ You are in the `cc_win_marketplace` folder. Create all files listed in this spec
 After creating all files:
 
 1. `cd cc_win_plugin`
-2. `dotnet publish src/CcWin.csproj -r win-x64`
+2. `dotnet publish src/CcWin.csproj -c Debug -r win-x64`
 3. `copy out\bin\Debug\net10.0\win-x64\publish\CcWin.exe .`
 4. `powershell -ExecutionPolicy Bypass -File test_mcp.ps1`
 5. Report build result and test output
@@ -870,8 +870,8 @@ MCP server plugin for Claude Code on Windows. Provides native Windows tools.
 
 ## Build
 
-dotnet build src/CcWin.csproj
-copy out\bin\Debug\net10.0\CcWin.exe .
+dotnet publish src/CcWin.csproj -c Debug -r win-x64
+copy out\bin\Debug\net10.0\win-x64\publish\CcWin.exe .
 
 ## Install
 
@@ -904,7 +904,7 @@ These descriptions tell CC when to use each tool:
 
 ```
 cd cc_win_plugin
-dotnet publish src/CcWin.csproj -r win-x64
+dotnet publish src/CcWin.csproj -c Debug -r win-x64
 copy out\bin\Debug\net10.0\win-x64\publish\CcWin.exe .
 ```
 
