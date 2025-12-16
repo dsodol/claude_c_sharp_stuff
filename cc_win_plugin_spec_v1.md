@@ -35,7 +35,7 @@ If you CANNOT see the plugin, say so immediately. Do not pretend to have access.
 
 MCP server plugin for Claude Code on Windows. Provides native Windows tools so CC never needs shell commands.
 
-**MVP Scope:** Four tools — list_files, run_process, read_file, close_window
+**MVP Scope:** Five tools — list_files, run_process, read_file, close_window, get_build_info
 
 ---
 
@@ -61,11 +61,13 @@ MCP server plugin for Claude Code on Windows. Provides native Windows tools so C
     │   ├── ProjectContext.cs
     │   ├── ProcessTracker.cs
     │   ├── AppLogger.cs
+    │   ├── BuildInfo.cs
     │   └── Tools/
     │       ├── ListFilesTool.cs
     │       ├── RunProcessTool.cs
     │       ├── ReadFileTool.cs
-    │       └── CloseWindowTool.cs
+    │       ├── CloseWindowTool.cs
+    │       └── GetBuildInfoTool.cs
     ├── skills/
     │   └── windows-native/
     │       └── SKILL.md
@@ -279,6 +281,36 @@ Gracefully close a window by sending WM_CLOSE message.
 - PID not tracked → `{ "error": "Process not tracked: {pid}" }`
 - Process not found → `{ "error": "Process not found: {pid}" }`
 - No main window → `{ "error": "Process has no main window: {pid}" }`
+
+---
+
+### 5. get_build_info
+
+Get plugin build information and directory paths.
+
+**Input:**
+```json
+{}
+```
+
+No parameters required.
+
+**Output:**
+```json
+{
+  "build_number": "2025-12-16_14-30_001",
+  "plugin_directory": "C:\\Users\\user\\.claude\\plugins\\cache\\cc_win_marketplace\\cc_win\\1.0.0",
+  "project_directory": "C:\\Projects\\my_project",
+  "dotnet_version": "10.0.0",
+  "os_version": "Microsoft Windows 10.0.22631"
+}
+```
+
+**Notes:**
+- Use this to verify the plugin is working and to check directories
+- Build number format: `YYYY-MM-DD_HH-mm_NNN`
+- Plugin directory is where the exe is located (used for logs)
+- Project directory is the sandbox root (set by CC)
 
 ---
 
@@ -693,6 +725,61 @@ public class CloseWindowResult
 ```
 
 ```csharp
+// BuildInfo.cs
+namespace CcWin;
+
+public static class BuildInfo
+{
+    public const string Number = "2025-12-16_14-30_001";  // Update every build
+    
+    public static string PluginDirectory => AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+    public static string ProjectDirectory => Directory.GetCurrentDirectory();
+    public static string DotNetVersion => Environment.Version.ToString();
+    public static string OsVersion => Environment.OSVersion.ToString();
+}
+```
+
+```csharp
+// Tools/GetBuildInfoTool.cs
+using System.ComponentModel;
+using ModelContextProtocol.Server;
+
+namespace CcWin.Tools;
+
+[McpServerToolType]
+public static class GetBuildInfoTool
+{
+    [McpServerTool]
+    [Description("Get plugin build information and directory paths. Use to verify the plugin is working correctly.")]
+    public static GetBuildInfoResult GetBuildInfo(AppLogger logger)
+    {
+        logger.ToolCall("get_build_info", new { });
+
+        var result = new GetBuildInfoResult
+        {
+            BuildNumber = BuildInfo.Number,
+            PluginDirectory = BuildInfo.PluginDirectory,
+            ProjectDirectory = BuildInfo.ProjectDirectory,
+            DotNetVersion = BuildInfo.DotNetVersion,
+            OsVersion = BuildInfo.OsVersion
+        };
+
+        logger.ToolResult("get_build_info", true);
+        return result;
+    }
+}
+
+public class GetBuildInfoResult
+{
+    public string BuildNumber { get; set; } = "";
+    public string PluginDirectory { get; set; } = "";
+    public string ProjectDirectory { get; set; } = "";
+    public string DotNetVersion { get; set; } = "";
+    public string OsVersion { get; set; } = "";
+}
+```
+
+```csharp
 // ProjectContext.cs
 namespace CcWin;
 
@@ -798,6 +885,7 @@ After reading this skill, you MUST report:
 - **run_process** — Start a process. Use instead of shell commands.
 - **read_file** — Read file contents. Use instead of `cat`, `type`.
 - **close_window** — Close a window by PID. Only works for processes started by run_process.
+- **get_build_info** — Get plugin build number and directory paths. Use to verify plugin is working.
 
 ## Rules
 
@@ -852,6 +940,9 @@ read_file(path="logs/app.log")
 ### Start and close an app
 pid = run_process(command="notepad")
 close_window(pid=pid)
+
+### Check plugin info
+get_build_info()
 ```
 
 ### cc_win_plugin/README.md
@@ -867,6 +958,7 @@ MCP server plugin for Claude Code on Windows. Provides native Windows tools.
 - **run_process** — Start a process, returns PID
 - **read_file** — Read file contents
 - **close_window** — Close window by PID
+- **get_build_info** — Get plugin build info and directories
 
 ## Build
 
@@ -895,6 +987,9 @@ These descriptions tell CC when to use each tool:
 
 **close_window:**
 > Gracefully close a window by PID. Only works for processes started by run_process. Sends WM_CLOSE message so the app can clean up properly.
+
+**get_build_info:**
+> Get plugin build information and directory paths. Use this to verify the plugin is working correctly and to check which directories are being used. Returns build number, plugin directory, project directory, .NET version, and OS version.
 
 ---
 
@@ -1103,11 +1198,13 @@ All files that must be created (relative to current directory):
         ├── AppLogger.cs                    ← from "MCP Server Implementation" section
         ├── ProjectContext.cs               ← from "MCP Server Implementation" section
         ├── ProcessTracker.cs               ← from "MCP Server Implementation" section
+        ├── BuildInfo.cs                    ← from "MCP Server Implementation" section
         └── Tools/
             ├── ListFilesTool.cs            ← from "Tools Implementation" section
             ├── RunProcessTool.cs           ← from "Tools Implementation" section
             ├── ReadFileTool.cs             ← from "Tools Implementation" section
-            └── CloseWindowTool.cs          ← from "Tools Implementation" section
+            ├── CloseWindowTool.cs          ← from "Tools Implementation" section
+            └── GetBuildInfoTool.cs         ← from "Tools Implementation" section
 ```
 
-Total: 16 files to create.
+Total: 18 files to create.
