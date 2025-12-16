@@ -298,7 +298,7 @@ No parameters required.
 **Output:**
 ```json
 {
-  "build_number": "2025-12-16_14-30_001",
+  "build_number": "2025_12_16__14_30__001",
   "plugin_directory": "C:\\Users\\user\\.claude\\plugins\\cache\\cc_win_marketplace\\cc_win\\1.0.0",
   "project_directory": "C:\\Projects\\my_project",
   "dotnet_version": "10.0.0",
@@ -308,7 +308,7 @@ No parameters required.
 
 **Notes:**
 - Use this to verify the plugin is working and to check directories
-- Build number format: `YYYY-MM-DD_HH-mm_NNN`
+- Build number format: `YYYY_MM_DD__HH_mm__NNN`
 - Plugin directory is where the exe is located (used for logs)
 - Project directory is the sandbox root (set by CC)
 
@@ -730,7 +730,7 @@ namespace CcWin;
 
 public static class BuildInfo
 {
-    public const string Number = "2025-12-16_14-30_001";  // Update every build
+    public const string Number = "2025_12_16__14_30__001";  // Update every build
     
     public static string PluginDirectory => AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
     public static string ProjectDirectory => Directory.GetCurrentDirectory();
