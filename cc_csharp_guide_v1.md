@@ -78,24 +78,24 @@ Always run through the checklist and report results before proceeding.
 **This is critical.** To create a standalone `.exe` that runs without .NET installed:
 
 ```
-dotnet publish src/ProjectName.csproj -c Debug -r win-x64
+dotnet publish src/ProjectName.csproj -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true
 ```
 
 **What each flag means:**
 - `-c Debug` — Use Debug configuration (REQUIRED — never use Release)
-- `-r win-x64` — Target Windows 64-bit runtime, creates self-contained exe
+- `-r win-x64` — Target Windows 64-bit runtime
+- `--self-contained true` — Include .NET runtime in the exe (no .NET install needed)
+- `-p:PublishSingleFile=true` — Bundle everything into ONE exe file
 
-**Why Debug only?**
-- Consistent behavior across all projects
-- Easier debugging with symbols included
-- No optimization surprises
-- Release builds are not needed for this workflow
+**Why all four flags?**
+- Without `--self-contained true` → requires .NET runtime installed
+- Without `-p:PublishSingleFile=true` → creates multiple DLLs alongside exe
 
 **Output location:** `out\bin\Debug\net10.0\win-x64\publish\ProjectName.exe`
 
 **For WPF apps** (target framework `net10.0-windows`):
 ```
-dotnet publish src/ProjectName.csproj -c Debug -r win-x64
+dotnet publish src/ProjectName.csproj -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true
 ```
 Output: `out\bin\Debug\net10.0-windows\win-x64\publish\ProjectName.exe`
 
@@ -113,12 +113,11 @@ copy out\bin\Debug\net10.0-windows\win-x64\publish\ProjectName.exe .
 
 | Wrong | Right |
 |-------|-------|
-| `dotnet build` | `dotnet publish -c Debug -r win-x64` |
-| `dotnet run` | `dotnet publish -c Debug -r win-x64` then run the exe |
-| `dotnet publish -c Release` | `dotnet publish -c Debug -r win-x64` |
-| Running from `bin\Debug\net10.0\` | Running from `publish\` folder |
+| `dotnet build` | `dotnet publish -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true` |
+| `dotnet publish -r win-x64` (missing flags) | `dotnet publish -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true` |
+| `dotnet publish -c Release` | `dotnet publish -c Debug -r win-x64 --self-contained true -p:PublishSingleFile=true` |
 
-**`dotnet build` does NOT create a standalone exe.** It creates a .dll that requires `dotnet` to run. Always use `dotnet publish -c Debug -r win-x64`.
+**`dotnet build` does NOT create a standalone exe.** It creates a .dll that requires `dotnet` to run. Always use the full publish command with all four flags.
 
 ## Project Structure
 
