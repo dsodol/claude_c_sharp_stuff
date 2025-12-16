@@ -32,14 +32,22 @@
 
 After reading these instructions, you MUST:
 
-1. **Report plugin visibility:** "I can see cc_win_plugin with tools: [list them]" OR "I cannot see cc_win_plugin"
-2. **Confirm understanding:** State that you understand the build process uses `dotnet publish -c Debug -r win-x64` to create a standalone exe
-3. **Confirm error handling:** State that you will stop and report any errors immediately
+1. **Query plugin build info:** Call `get_build_info()` to verify the plugin is working
+2. **Report plugin visibility:** "I can see cc_win_plugin with tools: [list them]" OR "I cannot see cc_win_plugin"
+3. **Confirm understanding:** State that you understand the build process uses `dotnet publish -c Debug -r win-x64` to create a standalone exe
+4. **Confirm error handling:** State that you will stop and report any errors immediately
 
 Example acknowledgment:
-> "I've read the ui_testing_poc instructions. CLAUDE.md exists/created. I can see cc_win_plugin with tools: list_files, run_process, read_file, close_window. I understand I need to use `dotnet publish -c Debug -r win-x64` to build a standalone exe (never Release). I will stop and report any errors immediately. Ready to proceed."
+> "I've read the ui_testing_poc instructions. CLAUDE.md exists/created.
+> 
+> Plugin build info:
+> - Build: 2025_12_16__14_30__001
+> - Plugin directory: C:\Users\user\.claude\plugins\cache\cc_win_marketplace\cc_win\1.0.0
+> - Project directory: C:\Projects\ui_testing_poc
+> 
+> I can see cc_win_plugin with tools: list_files, run_process, read_file, close_window, get_build_info. I understand I need to use `dotnet publish -c Debug -r win-x64` to build a standalone exe (never Release). I will stop and report any errors immediately. Ready to proceed."
 
-If you CANNOT see the plugin, say so immediately.
+If you CANNOT see the plugin or `get_build_info()` fails, say so immediately.
 
 ---
 
@@ -57,6 +65,7 @@ You have access to the cc_win_plugin which provides native Windows tools. Use th
 
 | Tool | Purpose | Use When |
 |------|---------|----------|
+| `get_build_info` | Get plugin build number and directories | Starting a new chat, verifying plugin works |
 | `list_files` | List directory contents | You need to see what files exist in a folder |
 | `run_process` | Launch an application | You need to start a UI app or background process |
 | `read_file` | Read file contents | You need to check logs, config files, or any text file |
