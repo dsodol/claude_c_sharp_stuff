@@ -141,9 +141,10 @@ catch (Exception ex)
 
 **Test:**
 1. Rebuild: `dotnet publish src/CcWin.csproj -r win-x64`
-2. Copy: `copy out\bin\Debug\net10.0\win-x64\publish\CcWin.exe .`
-3. Run: `cd test_mcp && dotnet run && cd ..`
-4. Check `logs/cc_win_plugin.log`
+2. Copy to plugin root: `copy out\bin\Debug\net10.0\win-x64\publish\CcWin.exe .`
+3. Copy to CC cache: `copy CcWin.exe C:\Users\%USERNAME%\.claude\plugins\cache\cc_win_marketplace\cc_win\1.0.0\`
+4. Run test: `cd test_mcp && dotnet run && cd ..`
+5. Check `logs/cc_win_plugin.log`
 
 **Report:** What's the last log entry? Did it catch an exception?
 
