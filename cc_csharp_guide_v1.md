@@ -14,7 +14,14 @@
    2. [csproj Output Paths](#32-csproj-output-paths)
    3. [.gitignore](#33-gitignore)
 4. [Architecture](#4-architecture)
-5. [UI Configuration Persistence](#5-ui-configuration-persistence)
+5. [UI Design Principles](#5-ui-design-principles)
+   1. [Configuration Persistence](#51-configuration-persistence)
+   2. [Use System UI Components](#52-use-system-ui-components)
+   3. [Honor All User Choices from Option Dialogs](#53-honor-all-user-choices-from-option-dialogs)
+   4. [Use System Look and Feel](#54-use-system-look-and-feel)
+   5. [Match System Theme](#55-match-system-theme)
+   6. [Log Panel by Default](#56-log-panel-by-default)
+   7. [Panels Must Be Resizable and Collapsible](#57-panels-must-be-resizable-and-collapsible)
 6. [Logging](#6-logging)
 7. [Process Management](#7-process-management)
    1. [Directories](#71-directories)
@@ -163,7 +170,9 @@ Use **Code-Behind + Service Layer**. Do NOT use MVVM unless explicitly requested
 
 ---
 
-## 5. UI Configuration Persistence
+## 5. UI Design Principles
+
+### 5.1 Configuration Persistence
 
 **Key Principle:** If a user can resize, move, collapse, or configure any UI element, that configuration MUST survive application restart. Same with all application options.
 
@@ -171,8 +180,6 @@ When implementing any UI element with user-configurable state, it MUST be:
 1. **Saved automatically** when the user changes it
 2. **Restored automatically** when the application starts
 3. **Stored in AppSettings** with a sensible default value
-
-### UI State That Must Be Persisted
 
 | UI Element | Properties to Persist |
 |------------|----------------------|
@@ -185,22 +192,32 @@ When implementing any UI element with user-configurable state, it MUST be:
 | Filter state | Active filters |
 | Window | Size, Position, Maximized state |
 
-### Implementation
+### 5.2 Use System UI Components
 
-```csharp
-// Save on change
-private void Splitter_DragCompleted(object sender, EventArgs e)
-{
-    AppSettings.Instance.SplitterPosition = MainSplitter.Width;
-    AppSettings.Instance.Save();
-}
+Use system UI components whenever functionality is close to desired. E.g., font selection must use the system font dialog, file selection must use the system file picker.
 
-// Restore on load
-private void Window_Loaded(object sender, RoutedEventArgs e)
-{
-    MainSplitter.Width = AppSettings.Instance.SplitterPosition;
-}
-```
+### 5.3 Honor All User Choices from Option Dialogs
+
+When using option dialogs (file picker, font picker, color picker, etc.), ALL user selections MUST be captured and applied. If a font dialog allows selecting font family, size, and style — all three must be saved and used, not just the family name.
+
+### 5.4 Use System Look and Feel
+
+UI elements should match native Windows appearance. Use system icons (via Shell API), system colors, and default control styles. Do not use custom styling that deviates from platform visual language.
+
+### 5.5 Match System Theme
+
+All UI must match system theme. Use system colors, fonts, and visual styles that correspond to user's Windows theme settings. Never hardcode colors — use system color resources (e.g., `SystemColors` in WPF) so UI automatically adapts to user's theme.
+
+### 5.6 Log Panel by Default
+
+Include a log panel by default in UI applications. This aids debugging and helps users understand what the application is doing. Log key events, errors, and state changes. Log panel follows the same theme as the rest of the application.
+
+### 5.7 Panels Must Be Resizable and Collapsible
+
+Every panel must be:
+- **Resizable** via splitter/drag handle
+- **Collapsible** via toggle button or header click
+- **Persistent** — size and collapsed state saved per 5.1
 
 ---
 
@@ -302,20 +319,7 @@ File: `.claude/settings.json`
     "allow": [
       "mcp__plugin_cc_win_cc_win__*",
       "Edit",
-      "Read",
-      "Bash(mkdir:*)",
-      "Bash(copy:*)",
-      "Bash(move:*)",
-      "Bash(del:*)",
-      "Bash(type:*)",
-      "Bash(dir:*)",
-      "Bash(dotnet:*)",
-      "Bash(git:*)"
-    ],
-    "deny": [
-      "Bash(rmdir /s:*)",
-      "Bash(format:*)",
-      "Bash(del /s /q:*)"
+      "Read"
     ]
   }
 }
