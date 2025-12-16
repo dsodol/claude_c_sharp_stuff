@@ -85,7 +85,9 @@ logs/
 
 All file operations must be within the project directory.
 
-**Project directory** = directory where the exe is located (AppDomain.CurrentDomain.BaseDirectory).
+**Project directory** = current working directory when plugin starts (set by CC to the project being worked on).
+
+**Plugin directory** = directory where the exe is located (for logs).
 
 Validation rules:
 1. Resolve input path to absolute path
@@ -105,7 +107,7 @@ See `ProcessTracker.cs` implementation below.
 
 ## Logging
 
-**Location:** `logs/cc_win_plugin.log` (relative to project directory)
+**Location:** `logs/cc_win_plugin.log` (relative to plugin directory, not project directory)
 
 **Rotation:** On startup, if log file exists, rename to `cc_win_plugin_{timestamp}.log`
 
@@ -292,13 +294,18 @@ using Microsoft.Extensions.Hosting;
 using ModelContextProtocol.Server;
 using CcWin;
 
-// Get the directory where the exe is located (not current working directory)
-var projectDirectory = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
-var logger = new AppLogger(projectDirectory);
+// Plugin directory (where exe is) - for logs
+var pluginDirectory = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+
+// Project directory (current working directory) - for file sandbox
+var projectDirectory = Directory.GetCurrentDirectory();
+
+var logger = new AppLogger(pluginDirectory);
 var processTracker = new ProcessTracker();
 var projectContext = new ProjectContext(projectDirectory);
 
 logger.Info("Plugin started");
+logger.Info($"Plugin directory: {pluginDirectory}");
 logger.Info($"Project directory: {projectDirectory}");
 
 var builder = Host.CreateEmptyApplicationBuilder(settings: null);
@@ -326,9 +333,9 @@ public class AppLogger
     private readonly object _lock = new();
     private const int MaxLogFiles = 3;
 
-    public AppLogger(string projectDirectory)
+    public AppLogger(string pluginDirectory)
     {
-        _logsDir = Path.Combine(projectDirectory, "logs");
+        _logsDir = Path.Combine(pluginDirectory, "logs");
         Directory.CreateDirectory(_logsDir);
 
         _logPath = Path.Combine(_logsDir, "cc_win_plugin.log");
