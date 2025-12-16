@@ -33,11 +33,11 @@
 After reading these instructions, you MUST:
 
 1. **Report plugin visibility:** "I can see cc_win_plugin with tools: [list them]" OR "I cannot see cc_win_plugin"
-2. **Confirm understanding:** State that you understand the build process uses `dotnet publish -r win-x64` to create a standalone exe
+2. **Confirm understanding:** State that you understand the build process uses `dotnet publish -c Debug -r win-x64` to create a standalone exe
 3. **Confirm error handling:** State that you will stop and report any errors immediately
 
 Example acknowledgment:
-> "I've read the ui_testing_poc instructions. CLAUDE.md exists/created. I can see cc_win_plugin with tools: list_files, run_process, read_file, close_window. I understand I need to use `dotnet publish -r win-x64` to build a standalone exe. I will stop and report any errors immediately. Ready to proceed."
+> "I've read the ui_testing_poc instructions. CLAUDE.md exists/created. I can see cc_win_plugin with tools: list_files, run_process, read_file, close_window. I understand I need to use `dotnet publish -c Debug -r win-x64` to build a standalone exe (never Release). I will stop and report any errors immediately. Ready to proceed."
 
 If you CANNOT see the plugin, say so immediately.
 
@@ -166,19 +166,23 @@ logs/
 
 ## Build Commands
 
-**IMPORTANT:** You must use `dotnet publish` with `-r win-x64` to create a standalone executable.
+**IMPORTANT:** You must use `dotnet publish` with `-c Debug -r win-x64` to create a standalone executable.
 
 ```
-dotnet publish src/UiTestingPoc.csproj -r win-x64
+dotnet publish src/UiTestingPoc.csproj -c Debug -r win-x64
 copy out\bin\Debug\net10.0-windows\win-x64\publish\UiTestingPoc.exe .
 ```
 
-**Why `dotnet publish -r win-x64`?**
-- `dotnet build` creates a `.dll` that requires the `dotnet` runtime to execute — it will NOT run as a standalone app
-- `dotnet publish -r win-x64` creates a **self-contained `.exe`** with all dependencies bundled
-- The `-r win-x64` flag targets Windows 64-bit
+**What each flag means:**
+- `-c Debug` — Use Debug configuration (REQUIRED — **NEVER use Release**)
+- `-r win-x64` — Target Windows 64-bit, creates self-contained exe
 
-**Common mistake:** Using `dotnet build` or `dotnet run` instead of `dotnet publish -r win-x64`. This will NOT work.
+**Why Debug only?**
+- Consistent behavior across all projects
+- Easier debugging with symbols included
+- No optimization surprises
+
+**Common mistake:** Using `dotnet build` or `dotnet run` instead of `dotnet publish -c Debug -r win-x64`. This will NOT work.
 
 **Output location:** `out\bin\Debug\net10.0-windows\win-x64\publish\UiTestingPoc.exe`
 
@@ -257,7 +261,7 @@ After clicking the button once:
 1. Check/create `CLAUDE.md` (see Project Initialization section)
 2. Create `.gitignore`
 3. Create all source files listed in the project structure
-4. Run `dotnet publish src/UiTestingPoc.csproj -r win-x64`
+4. Run `dotnet publish src/UiTestingPoc.csproj -c Debug -r win-x64`
 5. Copy the exe to project root: `copy out\bin\Debug\net10.0-windows\win-x64\publish\UiTestingPoc.exe .`
 6. Verify the exe exists
 
@@ -266,7 +270,7 @@ After clicking the button once:
 - [ ] CLAUDE.md exists (created or already present)
 - [ ] .gitignore created
 - [ ] All source files created (App.xaml, App.xaml.cs, MainWindow.xaml, MainWindow.xaml.cs, AppLogger.cs, UiTestingPoc.csproj)
-- [ ] dotnet publish completed with exit code 0
+- [ ] dotnet publish -c Debug -r win-x64 completed with exit code 0
 - [ ] out\bin\Debug\net10.0-windows\win-x64\publish\ directory exists
 - [ ] UiTestingPoc.exe exists in publish folder
 - [ ] copy command succeeded
@@ -337,7 +341,7 @@ Report checklist results before proceeding to Phase 2.
 ## Success Criteria
 
 - [ ] CLAUDE.md exists in project root
-- [ ] App built with `dotnet publish -r win-x64` (NOT `dotnet build`)
+- [ ] App built with `dotnet publish -c Debug -r win-x64` (NOT `dotnet build`, NOT Release)
 - [ ] App window appears on screen
 - [ ] Log file is created with startup message
 - [ ] You detect when I click the button (by reading the log)
