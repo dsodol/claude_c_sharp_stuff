@@ -1,4 +1,4 @@
-# C# Development Guide for Claude Code
+# C# Development Guide for Claude and Claude Code
 
 ## Table of Contents
 
