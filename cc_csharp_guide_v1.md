@@ -1,5 +1,18 @@
 # C# Development Guide for Claude and Claude Code
 
+## About This Document
+
+This is a **live document**. Claude must update it when new principles, patterns, or preferences are identified during our work together.
+
+**Rules for updating:**
+1. When a new pattern, mistake, or preference is discovered, **propose adding it** to this guide
+2. **Wait for approval** before pushing changes
+3. **When in doubt, ask** if something should be added
+4. **Always report** exactly what was added after each update
+5. **Present this file as an artifact** after cloning and after every change
+
+---
+
 ## Table of Contents
 
 1. [Critical Rules](#1-critical-rules)
