@@ -16,6 +16,21 @@ After creating all files:
 
 ---
 
+## CRITICAL: Acknowledgment Required
+
+After reading this spec, you MUST report:
+
+1. **Plugin visibility:** "I can see cc_win_plugin in my available tools" OR "I cannot see cc_win_plugin"
+2. **Tools available:** List which tools you see (list_files, run_process, read_file, close_window)
+3. **Understanding:** Briefly state what the plugin does
+
+Example acknowledgment:
+> "I've read the cc_win_plugin spec. I can see the plugin with tools: list_files, run_process, read_file, close_window. This plugin provides native Windows file and process operations within a sandboxed project directory. Ready to proceed."
+
+If you CANNOT see the plugin, say so immediately. Do not pretend to have access.
+
+---
+
 ## Overview
 
 MCP server plugin for Claude Code on Windows. Provides native Windows tools so CC never needs shell commands.
@@ -770,6 +785,13 @@ Note: `${CLAUDE_PLUGIN_ROOT}` is expanded by CC to the plugin directory.
 
 Use native Windows tools instead of shell commands.
 
+## CRITICAL: Acknowledgment Required
+
+After reading this skill, you MUST report:
+1. "I can see cc_win_plugin" OR "I cannot see cc_win_plugin"
+2. List which tools you see
+3. State you understand the error handling requirements
+
 ## Tools Available
 
 - **list_files** — List directory contents. Use instead of `dir`, `ls`.
@@ -785,6 +807,35 @@ Use native Windows tools instead of shell commands.
 4. Working directory for run_process is always the project root
 5. All file paths must be within the project directory
 6. Do NOT use these tools when working inside the cc_win_plugin project itself
+
+## CRITICAL: Error Handling
+
+**Every tool call response MUST be checked for errors.**
+
+### After calling run_process:
+1. Check if response contains "error" field
+2. If error → STOP immediately and report the error
+3. If success → verify "pid" is a positive integer
+4. If pid missing/invalid → STOP and report
+
+### After calling any tool:
+1. Look for "error" in the response
+2. If error exists → STOP the workflow
+3. Report the full error message
+4. Do NOT proceed to next step
+
+### Example error handling:
+```
+I called run_process(command="MyApp.exe")
+
+Response: { "error": "Command not found: MyApp.exe" }
+
+STOPPING. Process failed to start: Command not found.
+This likely means the exe was not built or not copied to the expected location.
+Let me check if the file exists...
+```
+
+**Never ignore errors. Never continue after a failure.**
 
 ## Examples
 
