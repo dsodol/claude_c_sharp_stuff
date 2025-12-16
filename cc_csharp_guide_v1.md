@@ -233,6 +233,12 @@ Every panel must be:
 - **Collapsible** via toggle button or header click
 - **Persistent** — size and collapsed state saved per 5.1
 
+### 5.8 File Browser Requirements
+
+Unless specified otherwise, a file browser must show the complete filesystem starting from root (drives on Windows). The tree should expand to reveal the target location (last used folder or user's home directory by default). Users should never be restricted to a subset of the filesystem.
+
+Use the reusable file browser control from [ds_csharp_file_browser](https://github.com/dsodol/ds_csharp_file_browser) — a WPF TreeView-based component with system icons and on-demand loading.
+
 ---
 
 ## 6. Logging
