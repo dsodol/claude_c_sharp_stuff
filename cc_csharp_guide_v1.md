@@ -207,11 +207,26 @@ project_name/
 <PropertyGroup>
   <BaseOutputPath>..\out\bin\</BaseOutputPath>
   <BaseIntermediateOutputPath>..\out\obj\</BaseIntermediateOutputPath>
-  <PublishSingleFile>true</PublishSingleFile>
 </PropertyGroup>
 ```
 
-### 3.3 .gitignore
+### 3.3 csproj Publish Settings
+
+For standalone single-file executables:
+
+```xml
+<PropertyGroup>
+  <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  <PublishSingleFile>true</PublishSingleFile>
+  <SelfContained>true</SelfContained>
+  <PublishReadyToRun>true</PublishReadyToRun>
+  <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+</PropertyGroup>
+```
+
+**Note:** `IncludeNativeLibrariesForSelfExtract` is required — without it, the exe will fail with missing DLL errors.
+
+### 3.4 .gitignore
 
 ```
 out/
@@ -224,7 +239,7 @@ refs/
 .vs/
 ```
 
-### 3.4 Reference Repositories
+### 3.5 Reference Repositories
 
 External reference repos (documentation, shared components like `ds_csharp_file_browser`) should be cloned into a `refs/` subdirectory inside the project. This directory is gitignored — reference repos are not committed to the project repo.
 
