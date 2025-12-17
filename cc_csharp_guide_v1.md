@@ -423,3 +423,77 @@ File: `.claude/settings.json`
 ```
 
 `mcp__plugin_cc_win_cc_win__*` — Auto-approve all cc_win plugin tools.
+
+---
+
+## 12. HTTP Server and SSE
+
+### 12.1 Server-Sent Events (SSE)
+
+When implementing SSE endpoints:
+
+1. **Always flush immediately** after writing SSE events:
+   ```csharp
+   await response.WriteAsync($"event: endpoint\ndata: {url}\n\n");
+   await response.Body.FlushAsync();  // CRITICAL
+   ```
+
+2. **Include charset for Firefox compatibility**:
+   ```csharp
+   response.Headers.Append("Content-Type", "text/event-stream; charset=utf-8");
+   ```
+
+3. **Set all required headers**:
+   ```csharp
+   response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+   response.Headers.Append("Connection", "keep-alive");
+   response.Headers.Append("X-Accel-Buffering", "no");  // Disable proxy buffering
+   ```
+
+4. **Skip response buffering for SSE paths** in logging middleware:
+   ```csharp
+   if (req.Path.StartsWithSegments("/sse"))
+   {
+       await next();  // Don't buffer
+       return;
+   }
+   ```
+
+### 12.2 Reverse Proxy Headers
+
+When behind a proxy (ngrok, Cloudflare, nginx), use forwarded headers to build URLs:
+
+```csharp
+var scheme = context.Request.Headers["X-Forwarded-Proto"].FirstOrDefault() 
+    ?? context.Request.Scheme;
+var host = context.Request.Headers["X-Forwarded-Host"].FirstOrDefault() 
+    ?? context.Request.Host.ToString();
+```
+
+### 12.3 WPF Window Start Hidden to Tray
+
+To start a WPF app directly to system tray without window flash:
+
+**In XAML:**
+```xml
+<Window Visibility="Hidden" ShowInTaskbar="False" ...>
+```
+
+**In code:**
+```csharp
+private void ShowFromTray()
+{
+    Show();
+    ShowInTaskbar = true;
+    WindowState = WindowState.Normal;
+    Activate();
+}
+
+private void MinimizeToTray()
+{
+    Hide();
+    ShowInTaskbar = false;
+}
+```
+
+Do NOT call `MinimizeToTray()` in `Loaded` event — window is already hidden via XAML.
